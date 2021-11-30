@@ -1,26 +1,21 @@
 package com.example.tpe_final_poo.backend.model;
 
-public class Circle extends Figure {
-
-    protected final Point centerPoint;
-    protected final double radius;
+public class Circle extends Ellipse {
 
     public Circle(Point centerPoint, double radius) {
-        this.centerPoint = centerPoint;
-        this.radius = radius;
+        super(centerPoint,radius);
     }
-
     @Override
     public String toString() {
-        return String.format("Círculo [Centro: %s, Radio: %.2f]", centerPoint, radius);
-    }
-
-    public Point getCenterPoint() {
-        return centerPoint;
+        return String.format("Círculo [Centro: %s, Radio: %.2f]", getCenterPoint(), getRadius());
     }
 
     public double getRadius() {
-        return radius;
+        return getxRadius();
+    }
+    @Override
+    public Point[] getPoints(){
+        return new Point[]{getCenterPoint()};
     }
 
 }

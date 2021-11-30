@@ -8,7 +8,12 @@ public class Point {
         this.x = x;
         this.y = y;
     }
-
+    public void moveX(double deltaX){
+        x+=deltaX;
+    }
+    public void moveY(double deltaY){
+        y+=deltaY;
+    }
     public double getX() {
         return x;
     }

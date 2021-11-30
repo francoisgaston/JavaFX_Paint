@@ -8,7 +8,7 @@ import java.util.List;
 public class CanvasState {
 
     private final List<Figure> list = new ArrayList<>();
-
+    
     public void addFigure(Figure figure) {
         list.add(figure);
     }
@@ -16,5 +16,5 @@ public class CanvasState {
     public Iterable<Figure> figures() {
         return new ArrayList<>(list);
     }
-
+    //agregar belongs para un punto
 }

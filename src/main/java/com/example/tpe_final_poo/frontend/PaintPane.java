@@ -39,7 +39,7 @@ public class PaintPane extends BorderPane {
 
 	// StatusBar
 	StatusPane statusPane;
-
+	//para actualizar el texto cuando estoy sobre la figura
 	public PaintPane(CanvasState canvasState, StatusPane statusPane) {
 		this.canvasState = canvasState;
 		this.statusPane = statusPane;
@@ -55,7 +55,8 @@ public class PaintPane extends BorderPane {
 		buttonsBox.setPadding(new Insets(5));
 		buttonsBox.setStyle("-fx-background-color: #999");
 		buttonsBox.setPrefWidth(100);
-		gc.setLineWidth(1);
+		gc.setLineWidth(1); //esto hay que cambiarlo cuando hacemos cada figura
+		//cambia el ancho del borde
 		canvas.setOnMousePressed(event -> {
 			startPoint = new Point(event.getX(), event.getY());
 		});
@@ -86,7 +87,8 @@ public class PaintPane extends BorderPane {
 			boolean found = false;
 			StringBuilder label = new StringBuilder();
 			for(Figure figure : canvasState.figures()) {
-				if(figureBelongs(figure, eventPoint)) {
+				if(figure.pointBelongs(eventPoint)) {
+					//deberia ser un metodo de la clase Figure para cada figura
 					found = true;
 					label.append(figure.toString());
 				}
@@ -103,8 +105,9 @@ public class PaintPane extends BorderPane {
 				Point eventPoint = new Point(event.getX(), event.getY());
 				boolean found = false;
 				StringBuilder label = new StringBuilder("Se seleccionó: ");
+				//Hacer un metodo que vaya por todas las figuras y devuelva el Label
 				for (Figure figure : canvasState.figures()) {
-					if(figureBelongs(figure, eventPoint)) {
+					if(figure.pointBelongs(eventPoint)) {
 						found = true;
 						selectedFigure = figure;
 						label.append(figure.toString());
@@ -124,17 +127,23 @@ public class PaintPane extends BorderPane {
 				Point eventPoint = new Point(event.getX(), event.getY());
 				double diffX = (eventPoint.getX() - startPoint.getX()) / 100;
 				double diffY = (eventPoint.getY() - startPoint.getY()) / 100;
-				if(selectedFigure instanceof Rectangle) {
-					Rectangle rectangle = (Rectangle) selectedFigure;
-					rectangle.getTopLeft().x += diffX;
-					rectangle.getBottomRight().x += diffX;
-					rectangle.getTopLeft().y += diffY;
-					rectangle.getBottomRight().y += diffY;
-				} else if(selectedFigure instanceof Circle) {
-					Circle circle = (Circle) selectedFigure;
-					circle.getCenterPoint().x += diffX;
-					circle.getCenterPoint().y += diffY;
+				if (selectedFigure !=null) {
+					selectedFigure.moveX(diffX);
+					selectedFigure.moveY(diffY);
 				}
+//				if(selectedFigure instanceof Rectangle) {//revisar
+//					Rectangle rectangle = (Rectangle) selectedFigure;
+//					//rectangle.moveX(diffX);
+//					rectangle.getTopLeft().x += diffX;
+//					rectangle.getBottomRight().x += diffX;
+//					//rectangle.moveY(diffY);
+//					rectangle.getTopLeft().y += diffY;
+//					rectangle.getBottomRight().y += diffY;
+//				} else if(selectedFigure instanceof Circle) {//Usar Movable Figure
+//					Circle circle = (Circle) selectedFigure;
+//					circle.getCenterPoint().x += diffX;
+//					circle.getCenterPoint().y += diffY;
+//				}
 				redrawCanvas();
 			}
 		});
@@ -144,19 +153,24 @@ public class PaintPane extends BorderPane {
 
 	void redrawCanvas() {
 		gc.clearRect(0, 0, canvas.getWidth(), canvas.getHeight());
+		//borra las figuras
 		for(Figure figure : canvasState.figures()) {
 			if(figure == selectedFigure) {
+				//la seleccionada tiene borde rojo
 				gc.setStroke(Color.RED);
 			} else {
 				gc.setStroke(lineColor);
 			}
 			gc.setFill(fillColor);
+			//crear metodos privados si puedo, getWidth() y esos
 			if(figure instanceof Rectangle) {
 				Rectangle rectangle = (Rectangle) figure;
-				gc.fillRect(rectangle.getTopLeft().getX(), rectangle.getTopLeft().getY(),
-						Math.abs(rectangle.getTopLeft().getX() - rectangle.getBottomRight().getX()), Math.abs(rectangle.getTopLeft().getY() - rectangle.getBottomRight().getY()));
-				gc.strokeRect(rectangle.getTopLeft().getX(), rectangle.getTopLeft().getY(),
-						Math.abs(rectangle.getTopLeft().getX() - rectangle.getBottomRight().getX()), Math.abs(rectangle.getTopLeft().getY() - rectangle.getBottomRight().getY()));
+//				gc.fillRect(rectangle.getTopLeft().getX(), rectangle.getTopLeft().getY(),
+//						Math.abs(rectangle.getTopLeft().getX() - rectangle.getBottomRight().getX()), Math.abs(rectangle.getTopLeft().getY() - rectangle.getBottomRight().getY()));
+				gc.fillRect(rectangle.getTopLeft().getX(), rectangle.getTopLeft().getY(), rectangle.getWidth(), rectangle.getHeight());
+//				gc.strokeRect(rectangle.getTopLeft().getX(), rectangle.getTopLeft().getY(),
+//						Math.abs(rectangle.getTopLeft().getX() - rectangle.getBottomRight().getX()), Math.abs(rectangle.getTopLeft().getY() - rectangle.getBottomRight().getY()));
+				gc.strokeRect(rectangle.getTopLeft().getX(), rectangle.getTopLeft().getY(), rectangle.getWidth(), rectangle.getHeight());
 			} else if(figure instanceof Circle) {
 				Circle circle = (Circle) figure;
 				double diameter = circle.getRadius() * 2;
@@ -166,18 +180,18 @@ public class PaintPane extends BorderPane {
 		}
 	}
 
-	boolean figureBelongs(Figure figure, Point eventPoint) {
-		boolean found = false;
-		if(figure instanceof Rectangle) {
-			Rectangle rectangle = (Rectangle) figure;
-			found = eventPoint.getX() > rectangle.getTopLeft().getX() && eventPoint.getX() < rectangle.getBottomRight().getX() &&
-					eventPoint.getY() > rectangle.getTopLeft().getY() && eventPoint.getY() < rectangle.getBottomRight().getY();
-		} else if(figure instanceof Circle) {
-			Circle circle = (Circle) figure;
-			found = Math.sqrt(Math.pow(circle.getCenterPoint().getX() - eventPoint.getX(), 2) +
-					Math.pow(circle.getCenterPoint().getY() - eventPoint.getY(), 2)) < circle.getRadius();
-		}
-		return found;
-	}
+//	boolean figureBelongs(Figure figure, Point eventPoint) {//MALLL
+//		boolean found = false;
+//		if(figure instanceof Rectangle) {
+//			Rectangle rectangle = (Rectangle) figure;
+//			found = eventPoint.getX() > rectangle.getTopLeft().getX() && eventPoint.getX() < rectangle.getBottomRight().getX() &&
+//					eventPoint.getY() > rectangle.getTopLeft().getY() && eventPoint.getY() < rectangle.getBottomRight().getY();
+//		} else if(figure instanceof Circle) {
+//			Circle circle = (Circle) figure;
+//			found = Math.sqrt(Math.pow(circle.getCenterPoint().getX() - eventPoint.getX(), 2) +
+//					Math.pow(circle.getCenterPoint().getY() - eventPoint.getY(), 2)) < circle.getRadius();
+//		}
+//		return found;
+//	}
 
 }
