@@ -7,9 +7,10 @@ public class Ellipse extends Figure{
     public Ellipse(Point topLeft, Point bottomRight){
         this.topLeft = topLeft;
         this.bottomRight = bottomRight;
-        this.xRadius = (bottomRight.getX() - topLeft.getX())/2;
-        this.yRadius = (topLeft.getY()-bottomRight.getY())/2;
-        this.centerPoint = new Point(topLeft.getX() + xRadius, bottomRight.getY() + yRadius);
+        this.xRadius = Math.abs(bottomRight.getX() - topLeft.getX())/2;
+        this.yRadius = Math.abs(topLeft.getY()-bottomRight.getY())/2;
+        this.centerPoint = new Point(topLeft.getX() + xRadius, bottomRight.getY() - yRadius);
+        System.out.printf("center: %s, x:%s y:%s", centerPoint, xRadius, yRadius);
     }
     protected Ellipse(Point centerPoint, double radius){
         this.centerPoint = centerPoint;
@@ -18,7 +19,7 @@ public class Ellipse extends Figure{
     }
     @Override
     protected Point[] getPoints(){
-        return new Point[]{topLeft,bottomRight};
+        return new Point[]{topLeft,bottomRight,centerPoint};
     }
     public Point getCenterPoint() {
         return centerPoint;
@@ -29,6 +30,9 @@ public class Ellipse extends Figure{
     public double getyRadius(){
         return  yRadius;
     }
+    public Point getTopLeft() {return topLeft;}
+    public Point getBottomRight() {return bottomRight;}
+
     @Override
     public String toString(){
         return String.format("Elipse [Centro: %s, Semieje mayor: %.2f, Semieje menor: %.2f]", getCenterPoint(),xRadius,yRadius);

@@ -1,14 +1,13 @@
 package com.example.tpe_final_poo.frontend;
 
 import com.example.tpe_final_poo.backend.CanvasState;
-import com.example.tpe_final_poo.backend.model.Circle;
-import com.example.tpe_final_poo.backend.model.Figure;
-import com.example.tpe_final_poo.backend.model.Point;
-import com.example.tpe_final_poo.backend.model.Rectangle;
+import com.example.tpe_final_poo.backend.model.*;
 import javafx.geometry.Insets;
 import javafx.scene.Cursor;
 import javafx.scene.canvas.Canvas;
 import javafx.scene.canvas.GraphicsContext;
+import javafx.scene.control.ColorPicker;
+import javafx.scene.control.Slider;
 import javafx.scene.control.ToggleButton;
 import javafx.scene.control.ToggleGroup;
 import javafx.scene.layout.BorderPane;
@@ -30,7 +29,11 @@ public class PaintPane extends BorderPane {
 	ToggleButton selectionButton = new ToggleButton("Seleccionar");
 	ToggleButton rectangleButton = new ToggleButton("Rectángulo");
 	ToggleButton circleButton = new ToggleButton("Círculo");
-
+	ToggleButton ellipseButton = new ToggleButton("Elipse");
+	ToggleButton squareButton = new ToggleButton("Cuadrado");
+	ToggleButton LineButton = new ToggleButton("Linea");
+	ColorPicker colorPicker = new ColorPicker();
+	Slider slider = new Slider(0,100,0);
 	// Dibujar una figura
 	Point startPoint;
 
@@ -41,9 +44,10 @@ public class PaintPane extends BorderPane {
 	StatusPane statusPane;
 	//para actualizar el texto cuando estoy sobre la figura
 	public PaintPane(CanvasState canvasState, StatusPane statusPane) {
+
 		this.canvasState = canvasState;
 		this.statusPane = statusPane;
-		ToggleButton[] toolsArr = {selectionButton, rectangleButton, circleButton};
+		ToggleButton[] toolsArr = {selectionButton, rectangleButton, circleButton, ellipseButton, squareButton, LineButton};
 		ToggleGroup tools = new ToggleGroup();
 		for (ToggleButton tool : toolsArr) {
 			tool.setMinWidth(90);
@@ -51,7 +55,19 @@ public class PaintPane extends BorderPane {
 			tool.setCursor(Cursor.HAND);
 		}
 		VBox buttonsBox = new VBox(10);
+		/*
+		slider.setMin(0);
+		slider.setMax(3);
+		slider.setValue(1);
+		slider.setMinorTickCount(0);
+		slider.setMajorTickUnit(1);
+		slider.setSnapToTicks(true);
+		slider.setShowTickMarks(true);
+		slider.setShowTickLabels(true);
+		*/
 		buttonsBox.getChildren().addAll(toolsArr);
+		buttonsBox.getChildren().add(colorPicker);
+		buttonsBox.getChildren().add(slider);
 		buttonsBox.setPadding(new Insets(5));
 		buttonsBox.setStyle("-fx-background-color: #999");
 		buttonsBox.setPrefWidth(100);
@@ -65,18 +81,26 @@ public class PaintPane extends BorderPane {
 			if(startPoint == null) {
 				return ;
 			}
-			if(endPoint.getX() < startPoint.getX() || endPoint.getY() < startPoint.getY()) {
-				return ;
-			}
 			Figure newFigure = null;
-			if(rectangleButton.isSelected()) {
-				newFigure = new Rectangle(startPoint, endPoint);
+			if(LineButton.isSelected()){
+				newFigure = new Line(startPoint, endPoint);
 			}
-			else if(circleButton.isSelected()) {
-				double circleRadius = Math.abs(endPoint.getX() - startPoint.getX());
-				newFigure = new Circle(startPoint, circleRadius);
-			} else {
-				return ;
+			else {
+				if (endPoint.getX() < startPoint.getX() || endPoint.getY() < startPoint.getY()) {
+					return;
+				}
+				if (rectangleButton.isSelected()) {  //todo para mañana: mejorar
+					newFigure = new Rectangle(startPoint, endPoint);
+				} else if (circleButton.isSelected()) {
+					double circleRadius = Math.abs(endPoint.getX() - startPoint.getX());
+					newFigure = new Circle(startPoint, circleRadius);
+				} else if (ellipseButton.isSelected()) {
+					newFigure = new Ellipse(startPoint, endPoint);
+				} else if (squareButton.isSelected()) {
+					newFigure = new Square(startPoint, endPoint);
+				} else {
+					return;
+				}
 			}
 			canvasState.addFigure(newFigure);
 			startPoint = null;
@@ -119,6 +143,7 @@ public class PaintPane extends BorderPane {
 					selectedFigure = null;
 					statusPane.updateStatus("Ninguna figura encontrada");
 				}
+				System.out.println(slider.getValue());
 				redrawCanvas();
 			}
 		});
@@ -163,7 +188,7 @@ public class PaintPane extends BorderPane {
 			}
 			gc.setFill(fillColor);
 			//crear metodos privados si puedo, getWidth() y esos
-			if(figure instanceof Rectangle) {
+			if(figure instanceof Rectangle) {  //todo cambiar
 				Rectangle rectangle = (Rectangle) figure;
 //				gc.fillRect(rectangle.getTopLeft().getX(), rectangle.getTopLeft().getY(),
 //						Math.abs(rectangle.getTopLeft().getX() - rectangle.getBottomRight().getX()), Math.abs(rectangle.getTopLeft().getY() - rectangle.getBottomRight().getY()));
@@ -176,7 +201,15 @@ public class PaintPane extends BorderPane {
 				double diameter = circle.getRadius() * 2;
 				gc.fillOval(circle.getCenterPoint().getX() - circle.getRadius(), circle.getCenterPoint().getY() - circle.getRadius(), diameter, diameter);
 				gc.strokeOval(circle.getCenterPoint().getX() - circle.getRadius(), circle.getCenterPoint().getY() - circle.getRadius(), diameter, diameter);
-			}
+			} else if(figure instanceof Ellipse) {
+				Ellipse ellipse = (Ellipse) figure;
+				gc.fillOval(ellipse.getTopLeft().getX(), ellipse.getTopLeft().getY(), ellipse.getxRadius()*2, ellipse.getyRadius()*2);
+				gc.strokeOval(ellipse.getTopLeft().getX(), ellipse.getTopLeft().getY(), ellipse.getxRadius()*2, ellipse.getyRadius()*2);
+			}else if(figure instanceof Line) {
+				Line line = (Line) figure;
+				gc.setLineWidth(1);
+				gc.strokeLine(line.getTopLeft().getX(), line.getTopLeft().getY(), line.getBottomRight().getX(), line.getBottomRight().getY());
+				}
 		}
 	}
 
