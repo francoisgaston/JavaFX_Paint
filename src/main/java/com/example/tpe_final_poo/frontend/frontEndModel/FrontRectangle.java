@@ -1,7 +1,6 @@
 package com.example.tpe_final_poo.frontend.frontEndModel;
 
 import com.example.tpe_final_poo.backend.model.Figure;
-import com.example.tpe_final_poo.backend.model.Rectangle;
 import javafx.scene.canvas.GraphicsContext;
 import javafx.scene.paint.Color;
 

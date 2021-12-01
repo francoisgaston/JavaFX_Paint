@@ -12,7 +12,6 @@ public abstract class Figure {//propiedades generales de todas
         this.topLeft = topLeft;
         this.bottomRight = bottomRight;
         this.id = getAndIncrementId();
-        System.out.printf("id: %s\n", id);
     }
     protected Point[] getPoints(){
         return new Point[]{topLeft,bottomRight};

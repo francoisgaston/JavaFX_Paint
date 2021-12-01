@@ -1,12 +1,10 @@
 package com.example.tpe_final_poo.frontend.frontEndModel;
 
-import com.example.tpe_final_poo.backend.model.Ellipse;
 import com.example.tpe_final_poo.backend.model.Figure;
 import javafx.scene.canvas.GraphicsContext;
 import javafx.scene.paint.Color;
 
 public class FrontEllipse extends FrontFigure{
-    //private Ellipse ellipse;
     public FrontEllipse(Color fillColor, Color lineColor, double lineWidth){
         super(fillColor, lineColor, lineWidth);
     }

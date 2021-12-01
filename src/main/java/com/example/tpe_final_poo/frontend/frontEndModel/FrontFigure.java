@@ -5,18 +5,35 @@ import javafx.scene.canvas.GraphicsContext;
 import javafx.scene.paint.Color;
 
 public abstract class FrontFigure{
+    private static final Color selectedBorderColor = Color.RED;
     private Color fillColor;
     private Color lineColor;
     private double lineWidth;
+    private boolean isSelected = false;
+
     public FrontFigure (Color fillColor, Color lineColor, double lineWidth){
         this.fillColor = fillColor;
         this.lineColor = lineColor;
         this.lineWidth = lineWidth;
     }
+    public void select(){
+        isSelected = true;
+    }
+    public void deselect(){
+        isSelected = false;
+    }
     public void draw(GraphicsContext gc, Figure figure){
         gc.setStroke(lineColor);
         gc.setLineWidth(lineWidth);
         gc.setFill(fillColor);
+        if(isSelected){
+            gc.setStroke(selectedBorderColor);
+        }else{
+            gc.setStroke(lineColor);
+        }
+    }
+    public boolean isSelected(){
+        return isSelected;
     }
     public double getLineWidth(){
         return lineWidth;
