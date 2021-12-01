@@ -40,9 +40,11 @@ public class PaintPane extends BorderPane {
 	ToggleButton ellipseButton = new ToggleButton("Elipse");
 	ToggleButton squareButton = new ToggleButton("Cuadrado");
 	ToggleButton LineButton = new ToggleButton("Linea");
-	ColorPicker fillColorPicker = new ColorPicker();
-	ColorPicker lineColorPicker = new ColorPicker();
-	Slider slider = new Slider(0,100,0);
+	ToggleButton moveToFront = new ToggleButton("Al Frente"); //Memorias de PI
+	ToggleButton moveToBack = new ToggleButton("Al Fondo");
+	ColorPicker fillColorPicker = new ColorPicker(fillColor);
+	ColorPicker lineColorPicker = new ColorPicker(lineColor);
+	Slider lineWidthSlider = new Slider(1,20,lineWidth);
 	Point startPoint;
 
 	Figure selectedFigure;
@@ -55,7 +57,7 @@ public class PaintPane extends BorderPane {
 
 		this.canvasState = canvasState;
 		this.statusPane = statusPane;
-		ToggleButton[] toolsArr = {selectionButton, rectangleButton, circleButton, ellipseButton, squareButton, LineButton};
+		ToggleButton[] toolsArr = {selectionButton, rectangleButton, circleButton, ellipseButton, squareButton, LineButton,moveToFront,moveToBack};
 		ToggleGroup tools = new ToggleGroup();
 		for (ToggleButton tool : toolsArr) {
 			tool.setMinWidth(90);
@@ -65,15 +67,48 @@ public class PaintPane extends BorderPane {
 		VBox buttonsBox = new VBox(10);
 		buttonsBox.getChildren().addAll(toolsArr);
 		buttonsBox.getChildren().addAll(fillColorPicker, lineColorPicker);
-		buttonsBox.getChildren().add(slider);
+		buttonsBox.getChildren().add(lineWidthSlider);
 		buttonsBox.setPadding(new Insets(5));
 		buttonsBox.setStyle("-fx-background-color: #999");
 		buttonsBox.setPrefWidth(100);
 		gc.setLineWidth(1);
-
+		moveToFront.setOnAction(even->{
+			for(Figure figure : canvasState.figures()){
+				if(frontFigureMap.get(figure.getId()).isSelected()){//Todo: hacer una funcion y pasar un lamda
+					canvasState.moveToFront(figure);
+				}
+			}
+			redrawCanvas();
+		});
+		moveToBack.setOnAction(event->{
+			for(Figure figure : canvasState.figures()){
+				if(frontFigureMap.get(figure.getId()).isSelected()){
+					canvasState.moveToBack(figure);
+				}
+			}
+			redrawCanvas();
+		});
+//		//Esto es en el ButtonBox
+//		buttonsBox.setOnMouseClicked(event->{ //para cuando todo los botones
+//			if(moveToFront.isSelected()){
+//				for(Figure figure : canvasState.figures()){
+//					if(frontFigureMap.get(figure).isSelected()){//Todo: hacer una funcion y pasar un lamda
+//						canvasState.moveToFront(figure);
+//					}
+//				}
+//				redrawCanvas();
+//			}else if(moveToBack.isSelected()){
+//				for(Figure figure : canvasState.figures()){
+//					if(frontFigureMap.get(figure).isSelected()){
+//						canvasState.moveToBack(figure);
+//					}
+//				}
+//				redrawCanvas();
+//			}
+//		});
 		canvas.setOnMousePressed(event -> {
 			startPoint = new Point(event.getX(), event.getY());
-			deselectAll();
+			deselectAll(); //Todo: arreglar
 		});
 		canvas.setOnMouseReleased(event -> {
 			Point endPoint = new Point(event.getX(), event.getY());
@@ -107,7 +142,9 @@ public class PaintPane extends BorderPane {
 				} else {
 					return;
 				}
+
 			}
+			//deselectAll();
 			canvasState.addFigure(newFigure);
 			frontFigureMap.put(newFigure.getId(),frontFigure);
 			//agreaga al mapa {id,FrontFigure}
@@ -157,8 +194,9 @@ public class PaintPane extends BorderPane {
 				}
 				redrawCanvas();
 			}else{
-					deselectAll();
+				deselectAll();
 			}
+			//redrawCanvas();
 		});
 		canvas.setOnMouseDragged(event -> {
 			if(selectionButton.isSelected()) {
@@ -186,6 +224,15 @@ public class PaintPane extends BorderPane {
 			for(Figure figure : canvasState.figures()){
 				if(frontFigureMap.get(figure.getId()).isSelected()){
 					frontFigureMap.get(figure.getId()).setLineColor(lineColor);
+				}
+			}
+			redrawCanvas();
+		});
+		lineWidthSlider.setOnMouseDragged(event->{
+			lineWidth = lineWidthSlider.getValue();
+			for(Figure figure : canvasState.figures()){
+				if(frontFigureMap.get(figure.getId()).isSelected()){
+					frontFigureMap.get(figure.getId()).setLineWidth(lineWidth);
 				}
 			}
 			redrawCanvas();

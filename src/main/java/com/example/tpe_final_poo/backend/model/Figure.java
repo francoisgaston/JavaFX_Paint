@@ -44,6 +44,15 @@ public abstract class Figure {//propiedades generales de todas
     public int getId(){
         return id;
     }
+    public boolean equals(Object o){
+        if(this == o){
+            return true;
+        }
+        if(!(o instanceof Figure figure)){
+            return false;
+        }
+        return id == figure.getId();
+    }
 }
 //Ej 3 TP4
 
