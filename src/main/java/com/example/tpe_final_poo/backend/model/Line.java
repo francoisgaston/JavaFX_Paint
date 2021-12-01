@@ -1,32 +1,40 @@
 package com.example.tpe_final_poo.backend.model;
 
 public class Line extends Figure {
-    private Point topLeft, bottomRight;
-
+    //Puede ser que tenga sentido que extienda a Rectangle y cambiamos un par de cosas?
+    //Una linea no es un rectangulo, entonces puede ser que extender no sea una buena opcion
+    //pero podemos hacer composicion, porque muchos metodos son iguales
+//    private Point topLeft, bottomRight;
+    private Rectangle rectangle;
     public Line(Point topLeft, Point bottomRight){
-        this.topLeft = topLeft;
-        this.bottomRight = bottomRight;
+        this.rectangle = new Rectangle(topLeft,bottomRight);
     }
     @Override
     protected Point[] getPoints(){
-        return new Point[]{topLeft,bottomRight};
+        return rectangle.getPoints();
     }
     public Point getTopLeft() {
-        return topLeft;
+        return rectangle.getTopLeft();
     }
 
     public Point getBottomRight() {
-        return bottomRight;
+        return rectangle.getBottomRight();
     }
     public String toString() {
         return String.format("Linea [ %s , %s ]", getTopLeft(), getBottomRight());
     }
     @Override
     public boolean pointBelongs(Point point){
-        if(point.getX() > bottomRight.getX() || point.getX() < topLeft.getX() || point.getY() > bottomRight.getY() || point.getY() < topLeft.getY())
-            return false;
-        double m = (topLeft.getY() - bottomRight.getY()) / (topLeft.getX() - bottomRight.getX());
-        double b = topLeft.getY() - topLeft.getX() * m;
-        return point.getY() == point.getX() * m + b;
+//        if(point.getX() > rectangle.getBottomRight().getX() || point.getX() < rectangle.getTopLeft().getX() || point.getY() > rectangle.getBottomRight().getY() || point.getY() < rectangle.getTopLeft().getY())
+//            return false;
+//        double m = (rectangle.getTopLeft().getY() - rectangle.getBottomRight().getY()) / (rectangle.getTopLeft().getX() - rectangle.getBottomRight().getX());
+//        double b = rectangle.getTopLeft().getY() - rectangle.getTopLeft().getX() * m;
+//        return point.getY() == point.getX() * m + b;
+        return false;
+    }
+
+    @Override
+    public boolean isInRectangle(Rectangle rectangle) {
+        return this.rectangle.isInRectangle(rectangle);
     }
 }

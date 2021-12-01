@@ -14,5 +14,6 @@ public abstract class Figure {//propiedades generales de todas
         }
     }
     public abstract boolean pointBelongs(Point point);
+    public abstract boolean isInRectangle(Rectangle rectangle);
 }
 //Ej 3 TP4

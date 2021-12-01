@@ -34,4 +34,8 @@ public class Rectangle extends Figure {
         return point.getX() > getTopLeft().getX() && point.getX() < getBottomRight().getX() &&
                 point.getY() > getTopLeft().getY() && point.getY() < getBottomRight().getY();
     }
+    @Override
+    public boolean isInRectangle(Rectangle rectangle){
+        return rectangle.pointBelongs(topLeft) && rectangle.pointBelongs(bottomRight);
+    }
 }
