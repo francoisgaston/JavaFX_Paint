@@ -5,21 +5,21 @@ public class Line extends Figure {
     //Una linea no es un rectangulo, entonces puede ser que extender no sea una buena opcion
     //pero podemos hacer composicion, porque muchos metodos son iguales
 //    private Point topLeft, bottomRight;
-    private Rectangle rectangle;
+//    private Rectangle rectangle;
     public Line(Point topLeft, Point bottomRight){
-        this.rectangle = new Rectangle(topLeft,bottomRight);
+        super(topLeft,bottomRight);
     }
-    @Override
-    protected Point[] getPoints(){
-        return rectangle.getPoints();
-    }
-    public Point getTopLeft() {
-        return rectangle.getTopLeft();
-    }
+//    @Override
+//    protected Point[] getPoints(){
+//        return rectangle.getPoints();
+//    }
+//    public Point getTopLeft() {
+//        return rectangle.getTopLeft();
+//    }
 
-    public Point getBottomRight() {
-        return rectangle.getBottomRight();
-    }
+////    public Point getBottomRight() {
+//        return rectangle.getBottomRight();
+//    }
     public String toString() {
         return String.format("Linea [ %s , %s ]", getTopLeft(), getBottomRight());
     }
@@ -33,8 +33,8 @@ public class Line extends Figure {
         return false;
     }
 
-    @Override
-    public boolean isInRectangle(Rectangle rectangle) {
-        return this.rectangle.isInRectangle(rectangle);
-    }
+//    @Override
+//    public boolean isInRectangle(Rectangle rectangle) {
+//        return this.rectangle.isInRectangle(rectangle);
+//    }
 }

@@ -2,6 +2,10 @@ package com.example.tpe_final_poo.frontend;
 
 import com.example.tpe_final_poo.backend.CanvasState;
 import com.example.tpe_final_poo.backend.model.*;
+import com.example.tpe_final_poo.frontend.frontEndModel.FrontEllipse;
+import com.example.tpe_final_poo.frontend.frontEndModel.FrontFigure;
+import com.example.tpe_final_poo.frontend.frontEndModel.FrontLine;
+import com.example.tpe_final_poo.frontend.frontEndModel.FrontRectangle;
 import javafx.geometry.Insets;
 import javafx.scene.Cursor;
 import javafx.scene.canvas.Canvas;
@@ -14,6 +18,9 @@ import javafx.scene.layout.BorderPane;
 import javafx.scene.layout.VBox;
 import javafx.scene.paint.Color;
 
+import java.util.HashMap;
+import java.util.Map;
+
 public class PaintPane extends BorderPane {
 
 	// BackEnd
@@ -24,6 +31,7 @@ public class PaintPane extends BorderPane {
 	GraphicsContext gc = canvas.getGraphicsContext2D();
 	Color lineColor = Color.BLACK;
 	Color fillColor = Color.YELLOW;
+	private double lineWidht = 1;
 
 	// Botones Barra Izquierda
 	ToggleButton selectionButton = new ToggleButton("Seleccionar");
@@ -42,6 +50,8 @@ public class PaintPane extends BorderPane {
 
 	// StatusBar
 	StatusPane statusPane;
+	//Map que almacena como claves a los IDs de las figuras y como claves a las FrontFigures
+	private Map<Integer, FrontFigure> frontFigureMap = new HashMap<>();
 	//para actualizar el texto cuando estoy sobre la figura
 	public PaintPane(CanvasState canvasState, StatusPane statusPane) {
 
@@ -81,9 +91,11 @@ public class PaintPane extends BorderPane {
 			if(startPoint == null) {
 				return ;
 			}
+			FrontFigure frontFigure = null;
 			Figure newFigure = null;
 			if(LineButton.isSelected()){
 				newFigure = new Line(startPoint, endPoint);
+				frontFigure = new FrontLine(fillColor,lineColor,lineWidht);
 			}
 			else {
 				if (endPoint.getX() < startPoint.getX() || endPoint.getY() < startPoint.getY()) {
@@ -91,18 +103,26 @@ public class PaintPane extends BorderPane {
 				}
 				if (rectangleButton.isSelected()) {  //todo para mañana: mejorar
 					newFigure = new Rectangle(startPoint, endPoint);
+					frontFigure = new FrontRectangle(fillColor,lineColor,lineWidht);
+					//crear FrontFigure, en este caso un FrontRectangle
 				} else if (circleButton.isSelected()) {
 					double circleRadius = Math.abs(endPoint.getX() - startPoint.getX());
 					newFigure = new Circle(startPoint, circleRadius);
+					frontFigure = new FrontEllipse(fillColor,lineColor,lineWidht);
 				} else if (ellipseButton.isSelected()) {
 					newFigure = new Ellipse(startPoint, endPoint);
+					frontFigure = new FrontEllipse(fillColor,lineColor,lineWidht);
 				} else if (squareButton.isSelected()) {
 					newFigure = new Square(startPoint, endPoint);
+					frontFigure = new FrontRectangle(fillColor,lineColor,lineWidht);
 				} else {
 					return;
 				}
 			}
 			canvasState.addFigure(newFigure);
+			frontFigureMap.put(newFigure.getId(),frontFigure);
+			//agreaga al mapa {id,FrontFigure}
+
 			startPoint = null;
 			redrawCanvas();
 		});
@@ -180,36 +200,42 @@ public class PaintPane extends BorderPane {
 		gc.clearRect(0, 0, canvas.getWidth(), canvas.getHeight());
 		//borra las figuras
 		for(Figure figure : canvasState.figures()) {
+			//{figure.id} = info
+			// info.draw(gc,figure)
 			if(figure == selectedFigure) {
 				//la seleccionada tiene borde rojo
-				gc.setStroke(Color.RED);
+				frontFigureMap.get(figure.getId()).setLineColor(Color.RED);
+
+//				gc.setStroke(Color.RED);
 			} else {
-				gc.setStroke(lineColor);
+				frontFigureMap.get(figure.getId()).setLineColor(lineColor);
+//				gc.setStroke(lineColor);
 			}
-			gc.setFill(fillColor);
+			//gc.setFill(fillColor);
+			frontFigureMap.get(figure.getId()).setFillColor(fillColor);
+			frontFigureMap.get(figure.getId()).draw(gc,figure);
 			//crear metodos privados si puedo, getWidth() y esos
-			if(figure instanceof Rectangle) {  //todo cambiar
-				Rectangle rectangle = (Rectangle) figure;
-//				gc.fillRect(rectangle.getTopLeft().getX(), rectangle.getTopLeft().getY(),
-//						Math.abs(rectangle.getTopLeft().getX() - rectangle.getBottomRight().getX()), Math.abs(rectangle.getTopLeft().getY() - rectangle.getBottomRight().getY()));
-				gc.fillRect(rectangle.getTopLeft().getX(), rectangle.getTopLeft().getY(), rectangle.getWidth(), rectangle.getHeight());
-//				gc.strokeRect(rectangle.getTopLeft().getX(), rectangle.getTopLeft().getY(),
-//						Math.abs(rectangle.getTopLeft().getX() - rectangle.getBottomRight().getX()), Math.abs(rectangle.getTopLeft().getY() - rectangle.getBottomRight().getY()));
-				gc.strokeRect(rectangle.getTopLeft().getX(), rectangle.getTopLeft().getY(), rectangle.getWidth(), rectangle.getHeight());
-			} else if(figure instanceof Circle) {
-				Circle circle = (Circle) figure;
-				double diameter = circle.getRadius() * 2;
-				gc.fillOval(circle.getCenterPoint().getX() - circle.getRadius(), circle.getCenterPoint().getY() - circle.getRadius(), diameter, diameter);
-				gc.strokeOval(circle.getCenterPoint().getX() - circle.getRadius(), circle.getCenterPoint().getY() - circle.getRadius(), diameter, diameter);
-			} else if(figure instanceof Ellipse) {
-				Ellipse ellipse = (Ellipse) figure;
-				gc.fillOval(ellipse.getTopLeft().getX(), ellipse.getTopLeft().getY(), ellipse.getxRadius()*2, ellipse.getyRadius()*2);
-				gc.strokeOval(ellipse.getTopLeft().getX(), ellipse.getTopLeft().getY(), ellipse.getxRadius()*2, ellipse.getyRadius()*2);
-			}else if(figure instanceof Line) {
-				Line line = (Line) figure;
-				gc.setLineWidth(1);
-				gc.strokeLine(line.getTopLeft().getX(), line.getTopLeft().getY(), line.getBottomRight().getX(), line.getBottomRight().getY());
-				}
+//			if(figure instanceof Rectangle) {  //todo cambiar
+//				new FrontRectangle(fillColor,lineColor,1).draw(gc,figure);
+////				Rectangle rectangle = (Rectangle) figure;
+//////				gc.fillRect(rectangle.getTopLeft().getX(), rectangle.getTopLeft().getY(),
+//////						Math.abs(rectangle.getTopLeft().getX() - rectangle.getBottomRight().getX()), Math.abs(rectangle.getTopLeft().getY() - rectangle.getBottomRight().getY()));
+////				gc.fillRect(rectangle.getTopLeft().getX(), rectangle.getTopLeft().getY(), rectangle.getWidth(), rectangle.getHeight());
+//////				gc.strokeRect(rectangle.getTopLeft().getX(), rectangle.getTopLeft().getY(),
+//////						Math.abs(rectangle.getTopLeft().getX() - rectangle.getBottomRight().getX()), Math.abs(rectangle.getTopLeft().getY() - rectangle.getBottomRight().getY()));
+////				gc.strokeRect(rectangle.getTopLeft().getX(), rectangle.getTopLeft().getY(), rectangle.getWidth(), rectangle.getHeight());
+//			} else if(figure instanceof Ellipse) {
+//				new FrontEllipse(fillColor,lineColor,1).draw(gc,figure);
+////				Circle circle = (Circle) figure;
+////				double diameter = circle.getRadius() * 2;
+////				gc.fillOval(circle.getCenterPoint().getX() - circle.getRadius(), circle.getCenterPoint().getY() - circle.getRadius(), diameter, diameter);
+////				gc.strokeOval(circle.getCenterPoint().getX() - circle.getRadius(), circle.getCenterPoint().getY() - circle.getRadius(), diameter, diameter);
+//  			}else if(figure instanceof Line) {
+//				new FrontLine(fillColor,lineColor,1).draw(gc,figure);
+//				//Line line = (Line) figure;
+//				//gc.setLineWidth(1);
+//				//gc.strokeLine(line.getTopLeft().getX(), line.getTopLeft().getY(), line.getBottomRight().getX(), line.getBottomRight().getY());
+//			}
 		}
 	}
 
