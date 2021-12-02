@@ -10,10 +10,7 @@ import javafx.geometry.Insets;
 import javafx.scene.Cursor;
 import javafx.scene.canvas.Canvas;
 import javafx.scene.canvas.GraphicsContext;
-import javafx.scene.control.ColorPicker;
-import javafx.scene.control.Slider;
-import javafx.scene.control.ToggleButton;
-import javafx.scene.control.ToggleGroup;
+import javafx.scene.control.*;
 import javafx.scene.layout.BorderPane;
 import javafx.scene.layout.VBox;
 import javafx.scene.paint.Color;
@@ -35,13 +32,13 @@ public class PaintPane extends BorderPane {
 	GraphicsContext gc = canvas.getGraphicsContext2D();
 	Color lineColor = Color.BLACK;
 	Color fillColor = Color.YELLOW;
+	double maxLineWidth = 50;
 	double lineWidth = 1;
 
 
 	// Botones Barra Izquierda
 	BiPredicate<PaintPane,Point> TopLeftToBottomRight = (paintPane, endPoint)->endPoint.getX() >= paintPane.startPoint.getX() && endPoint.getY() >= paintPane.startPoint.getY();
 	ToggleButton selectionButton = new ToggleButton("Seleccionar");
-	ToggleButton deleteButton = new ToggleButton("Eliminar");
 	//Ahora quedaron un poco mejor los botones
 	NewShapeActionButton rectangleButton = new NewShapeActionButton(new ToggleButton("Rectángulo"),this, Rectangle::new, FrontRectangle::new,TopLeftToBottomRight);
 	//ToggleButton circleButton = new ToggleButton("Círculo");
@@ -52,11 +49,12 @@ public class PaintPane extends BorderPane {
 	NewShapeActionButton squareButton = new NewShapeActionButton(new ToggleButton("Cuadrado"),this, Square::new, FrontRectangle::new,TopLeftToBottomRight);
 	//ToggleButton LineButton = new ToggleButton("Linea");
 	NewShapeActionButton lineButton = new NewShapeActionButton(new ToggleButton("Linea"),this, Line::new, FrontLine::new,(a,b)->true);
-	ToggleButton moveToFront = new ToggleButton("Al Frente"); //Memorias de PI
+	ToggleButton deleteButton = new ToggleButton("Borrar");
+	ToggleButton moveToFront = new ToggleButton("Al Frente");
 	ToggleButton moveToBack = new ToggleButton("Al Fondo");
 	ColorPicker fillColorPicker = new ColorPicker(fillColor);
 	ColorPicker lineColorPicker = new ColorPicker(lineColor);
-	Slider lineWidthSlider = new Slider(1,20,lineWidth);
+	Slider lineWidthSlider = new Slider(1,maxLineWidth,lineWidth);
 	Point startPoint;
 
 	Figure selectedFigure;
@@ -73,21 +71,29 @@ public class PaintPane extends BorderPane {
 		NewShapeActionButton[] shapeButton = {rectangleButton,squareButton,circleButton,ellipseButton,lineButton};//TODO mejorar esto
 		//lineButton.setCanCreate((a,b)->true);
 		newShapeActionButtonList.addAll(Arrays.stream(shapeButton).toList());
-		ToggleButton[] toolsArr = {selectionButton, rectangleButton.getButton(), circleButton.getButton(), ellipseButton.getButton(), squareButton.getButton(), lineButton.getButton(),moveToFront,moveToBack,deleteButton};
+		ToggleButton[] toolsArr = {selectionButton, rectangleButton.getButton(), circleButton.getButton(), squareButton.getButton(), ellipseButton.getButton(), lineButton.getButton(), deleteButton ,moveToFront, moveToBack};
 		ToggleGroup tools = new ToggleGroup();
 		for (ToggleButton tool : toolsArr) {
 			tool.setMinWidth(90);
 			tool.setToggleGroup(tools);
 			tool.setCursor(Cursor.HAND);
-
+			tool.setStyle("-fx-font-size:12");
 		}
 		VBox buttonsBox = new VBox(10);
-		buttonsBox.getChildren().addAll(toolsArr);
-		buttonsBox.getChildren().addAll(fillColorPicker, lineColorPicker);
-		buttonsBox.getChildren().add(lineWidthSlider);
 		buttonsBox.setPadding(new Insets(5));
 		buttonsBox.setStyle("-fx-background-color: #999");
 		buttonsBox.setPrefWidth(100);
+		buttonsBox.getChildren().addAll(toolsArr);
+
+		buttonsBox.getChildren().add(new Label("Borde"));
+		lineWidthSlider.setMajorTickUnit(maxLineWidth/2);
+		lineWidthSlider.setShowTickMarks(true);
+		lineWidthSlider.setShowTickLabels(true);
+		buttonsBox.getChildren().add(lineWidthSlider);
+		buttonsBox.getChildren().add(lineColorPicker);
+		buttonsBox.getChildren().add(new Label("Relleno"));
+		buttonsBox.getChildren().addAll(fillColorPicker);
+
 		gc.setLineWidth(1);
 		moveToFront.setOnAction(even->{
 			forEachSelectedFigure(canvasState::moveToFront);
@@ -124,8 +130,12 @@ public class PaintPane extends BorderPane {
 						//System.out.println("Seleccionada!");
 						frontFigureMap.get(figure.getId()).select();
 					}
+//					else{
+//						frontFigureMap.get(figure.getId()).deselect();
+//					}
 				}
-			}else{
+			}
+			else{
 				selectionRectangle = null;
 			}
 			redrawCanvas();
