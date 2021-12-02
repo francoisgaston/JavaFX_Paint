@@ -22,8 +22,8 @@ public class CanvasState {
             deque.addFirst(figure);
         }
     }
-    public boolean delete(Figure figure){
-        return deque.remove(figure);
+    public void delete(Figure figure){
+        deque.remove(figure);
     }
     public void moveToFront(Figure figure){
         if(deque.remove(figure)){

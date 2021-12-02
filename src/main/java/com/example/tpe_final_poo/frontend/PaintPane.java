@@ -17,7 +17,9 @@ import javafx.scene.layout.VBox;
 import javafx.scene.paint.Color;
 
 import java.util.*;
+import java.util.function.Consumer;
 import java.util.function.Function;
+import java.util.function.Predicate;
 
 public class PaintPane extends BorderPane {
 	//Funciones para obtener la figura
@@ -97,28 +99,30 @@ public class PaintPane extends BorderPane {
 		buttonsBox.setPrefWidth(100);
 		gc.setLineWidth(1);
 		moveToFront.setOnAction(even->{
-			for(Figure figure : canvasState.figures()){
-				if(frontFigureMap.get(figure.getId()).isSelected()){//Todo: hacer una funcion y pasar un lamda
-					canvasState.moveToFront(figure);
-				}
-			}
-			redrawCanvas();
+			forEachFigure(canvasState::moveToFront);
 		});
+		//activateButton(moveToFront, (figure) -> canvasState.moveToFront(figure));
 		moveToBack.setOnAction(event->{
-			for(Figure figure : canvasState.figures()){
-				if(frontFigureMap.get(figure.getId()).isSelected()){
-					canvasState.moveToBack(figure);
-				}
-			}
-			redrawCanvas();
+//			canvasState.figures().forEach((figure->{
+//				if(checkFigure){
+//					cas
+//				}
+//			}));
+			forEachFigure(canvasState::moveToBack);
+//			for(Figure figure : canvasState.figures()){
+//				if(frontFigureMap.get(figure.getId()).isSelected()){
+//					canvasState.moveToBack(figure);
+//				}
+//			}
 		});
 		deleteButton.setOnAction(event->{
-			for(Figure figure : canvasState.figures()){
-				if(frontFigureMap.get(figure.getId()).isSelected()){
-					removeFigure(figure);
-				}
-			}
-			redrawCanvas();
+			forEachFigure(this::removeFigure);
+//			for(Figure figure : canvasState.figures()){
+//				if(frontFigureMap.get(figure.getId()).isSelected()){
+//					removeFigure(figure);
+//				}
+//			}
+//			redrawCanvas();
 		});
 //		//Esto es en el ButtonBox
 //		buttonsBox.setOnMouseClicked(event->{ //para cuando todo los botones
@@ -250,31 +254,45 @@ public class PaintPane extends BorderPane {
 		});
 		fillColorPicker.setOnAction(event-> {
 			fillColor = fillColorPicker.getValue();
-			for(Figure figure : canvasState.figures()){
-				if(frontFigureMap.get(figure.getId()).isSelected()){
-					frontFigureMap.get(figure.getId()).setFillColor(fillColor);
-				}
-			}
-			redrawCanvas();
+			forEachFigure(figure->frontFigureMap.get(figure.getId()).setFillColor(fillColor));
+//			for(Figure figure : canvasState.figures()){
+//				if(frontFigureMap.get(figure.getId()).isSelected()){
+//					frontFigureMap.get(figure.getId()).setFillColor(fillColor);
+//				}
+//			}
+//			redrawCanvas();
 		});
 		lineColorPicker.setOnAction(event-> {
 			lineColor = lineColorPicker.getValue();
-			for(Figure figure : canvasState.figures()){
-				if(frontFigureMap.get(figure.getId()).isSelected()){
-					frontFigureMap.get(figure.getId()).setLineColor(lineColor);
-				}
-			}
-			redrawCanvas();
+			forEachFigure(figure->frontFigureMap.get(figure.getId()).setLineColor(lineColor));
+//			for(Figure figure : canvasState.figures()){
+//				if(frontFigureMap.get(figure.getId()).isSelected()){
+//					frontFigureMap.get(figure.getId()).setLineColor(lineColor);
+//				}
+//			}
+//			redrawCanvas();
 		});
+
 		lineWidthSlider.setOnMouseDragged(event->{
 			lineWidth = lineWidthSlider.getValue();
-			for(Figure figure : canvasState.figures()){
-				if(frontFigureMap.get(figure.getId()).isSelected()){
-					frontFigureMap.get(figure.getId()).setLineWidth(lineWidth);
-				}
-			}
-			redrawCanvas();
+			forEachFigure(figure->frontFigureMap.get(figure.getId()).setLineWidth(lineWidth));
+//			for(Figure figure : canvasState.figures()){
+//				if(frontFigureMap.get(figure.getId()).isSelected()){
+//					frontFigureMap.get(figure.getId()).setLineWidth(lineWidth);
+//				}
+//			}
+//			redrawCanvas();
 		});
+
+//		lineWidthSlider.setOnMouseDragged(event->{
+//			lineWidth = lineWidthSlider.getValue();
+//			for(Figure figure : canvasState.figures()){
+//				if(frontFigureMap.get(figure.getId()).isSelected()){
+//					frontFigureMap.get(figure.getId()).setLineWidth(lineWidth);
+//				}
+//			}
+//			redrawCanvas();
+//		});
 		setLeft(buttonsBox);
 		setRight(canvas);
 	}
@@ -305,6 +323,13 @@ public class PaintPane extends BorderPane {
 
 		}
 	}
-
+	public void forEachFigure(Consumer<Figure> consumer){
+		for(Figure figure : canvasState.figures()){
+			if(frontFigureMap.get(figure.getId()).isSelected()){
+				consumer.accept(figure);
+			}
+		}
+		redrawCanvas();
+	}
 
 }
