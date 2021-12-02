@@ -2,9 +2,7 @@ package com.example.tpe_final_poo.frontend;
 
 import com.example.tpe_final_poo.backend.CanvasState;
 import com.example.tpe_final_poo.backend.model.*;
-import com.example.tpe_final_poo.frontend.frontEndModel.FrontEllipse;
 import com.example.tpe_final_poo.frontend.frontEndModel.FrontFigure;
-import com.example.tpe_final_poo.frontend.frontEndModel.FrontLine;
 import com.example.tpe_final_poo.frontend.frontEndModel.FrontRectangle;
 import javafx.geometry.Insets;
 import javafx.scene.Cursor;
@@ -18,11 +16,12 @@ import javafx.scene.layout.BorderPane;
 import javafx.scene.layout.VBox;
 import javafx.scene.paint.Color;
 
-import java.util.HashMap;
-import java.util.Map;
+import java.util.*;
+import java.util.function.Function;
 
 public class PaintPane extends BorderPane {
-
+	//Funciones para obtener la figura
+	Function<PaintPane,FrontFigure> getFrontRectanlge = (paintPane) -> new FrontRectangle(paintPane.fillColor,paintPane.lineColor, paintPane.lineWidth);
 	// BackEnd
 	CanvasState canvasState;
 
@@ -31,15 +30,35 @@ public class PaintPane extends BorderPane {
 	GraphicsContext gc = canvas.getGraphicsContext2D();
 	Color lineColor = Color.BLACK;
 	Color fillColor = Color.YELLOW;
-	private double lineWidth = 1;
+	double lineWidth = 1;
+
 
 	// Botones Barra Izquierda
+
 	ToggleButton selectionButton = new ToggleButton("Seleccionar");
-	ToggleButton rectangleButton = new ToggleButton("Rectángulo");
-	ToggleButton circleButton = new ToggleButton("Círculo");
-	ToggleButton ellipseButton = new ToggleButton("Elipse");
-	ToggleButton squareButton = new ToggleButton("Cuadrado");
-	ToggleButton LineButton = new ToggleButton("Linea");
+	ToggleButton deleteButton = new ToggleButton("Eliminar");
+	NewShapeActionButton rectangleButton = new NewShapeActionButton(new ToggleButton("Rectángulo"),this,
+			NewShapeActionButton.BackFigureFunction.RECTANGLE,
+			NewShapeActionButton.FrontFigureFunction.RECTANGLE);
+	//ToggleButton circleButton = new ToggleButton("Círculo");
+	NewShapeActionButton circleButton = new NewShapeActionButton(new ToggleButton("Círculo"),this,
+			NewShapeActionButton.BackFigureFunction.CIRCLE,
+			NewShapeActionButton.FrontFigureFunction.ELLIPSE);
+	//ToggleButton ellipseButton = new ToggleButton("Elipse");
+	NewShapeActionButton ellipseButton = new NewShapeActionButton(new ToggleButton("Elipse"),this,
+			NewShapeActionButton.BackFigureFunction.ELLIPSE,
+			NewShapeActionButton.FrontFigureFunction.ELLIPSE
+			);
+	//ToggleButton squareButton = new ToggleButton("Cuadrado");
+	NewShapeActionButton squareButton = new NewShapeActionButton(new ToggleButton("Cuadrado"),this,
+			NewShapeActionButton.BackFigureFunction.RECTANGLE,
+			NewShapeActionButton.FrontFigureFunction.RECTANGLE
+			);
+	//ToggleButton LineButton = new ToggleButton("Linea");
+	NewShapeActionButton lineButton = new NewShapeActionButton(new ToggleButton("Linea"),this,
+			NewShapeActionButton.BackFigureFunction.LINE,
+			NewShapeActionButton.FrontFigureFunction.LINE
+			);
 	ToggleButton moveToFront = new ToggleButton("Al Frente"); //Memorias de PI
 	ToggleButton moveToBack = new ToggleButton("Al Fondo");
 	ColorPicker fillColorPicker = new ColorPicker(fillColor);
@@ -48,21 +67,26 @@ public class PaintPane extends BorderPane {
 	Point startPoint;
 
 	Figure selectedFigure;
-
+	List<NewShapeActionButton> newShapeActionButtonList = new ArrayList<>();
 	StatusPane statusPane;
+
+
 	//Map que almacena como claves a los IDs de las figuras y como claves a las FrontFigures
-	private Map<Integer, FrontFigure> frontFigureMap = new HashMap<>();
+	Map<Integer, FrontFigure> frontFigureMap = new HashMap<>();
 	//para actualizar el texto cuando estoy sobre la figura
 	public PaintPane(CanvasState canvasState, StatusPane statusPane) {
-
 		this.canvasState = canvasState;
 		this.statusPane = statusPane;
-		ToggleButton[] toolsArr = {selectionButton, rectangleButton, circleButton, ellipseButton, squareButton, LineButton,moveToFront,moveToBack};
+		NewShapeActionButton[] shapeButton = {rectangleButton,squareButton,circleButton,ellipseButton,lineButton};//TODO mejorar esto
+		lineButton.setCanCreate((a,b)->true);
+		newShapeActionButtonList.addAll(Arrays.stream(shapeButton).toList());
+		ToggleButton[] toolsArr = {selectionButton, rectangleButton.getButton(), circleButton.getButton(), ellipseButton.getButton(), squareButton.getButton(), lineButton.getButton(),moveToFront,moveToBack,deleteButton};
 		ToggleGroup tools = new ToggleGroup();
 		for (ToggleButton tool : toolsArr) {
 			tool.setMinWidth(90);
 			tool.setToggleGroup(tools);
 			tool.setCursor(Cursor.HAND);
+
 		}
 		VBox buttonsBox = new VBox(10);
 		buttonsBox.getChildren().addAll(toolsArr);
@@ -88,6 +112,14 @@ public class PaintPane extends BorderPane {
 			}
 			redrawCanvas();
 		});
+		deleteButton.setOnAction(event->{
+			for(Figure figure : canvasState.figures()){
+				if(frontFigureMap.get(figure.getId()).isSelected()){
+					removeFigure(figure);
+				}
+			}
+			redrawCanvas();
+		});
 //		//Esto es en el ButtonBox
 //		buttonsBox.setOnMouseClicked(event->{ //para cuando todo los botones
 //			if(moveToFront.isSelected()){
@@ -108,48 +140,54 @@ public class PaintPane extends BorderPane {
 //		});
 		canvas.setOnMousePressed(event -> {
 			startPoint = new Point(event.getX(), event.getY());
-			deselectAll(); //Todo: arreglar
+			//deselectAll(); //Todo: arreglar
 		});
 		canvas.setOnMouseReleased(event -> {
 			Point endPoint = new Point(event.getX(), event.getY());
 			if(startPoint == null) {
 				return ;
 			}
-			FrontFigure frontFigure = null;
-			Figure newFigure = null;
-			if(LineButton.isSelected()){
-				newFigure = new Line(startPoint, endPoint);
-				frontFigure = new FrontLine(fillColor,lineColor, lineWidth);
+			for(NewShapeActionButton newShapeActionButton : newShapeActionButtonList){
+					newShapeActionButton.createShape(endPoint);
 			}
-			else {
-				if (endPoint.getX() < startPoint.getX() || endPoint.getY() < startPoint.getY()) {
-					return;
-				}
-				if (rectangleButton.isSelected()) {  //todo para mañana: mejorar
-					newFigure = new Rectangle(startPoint, endPoint);
-					frontFigure = new FrontRectangle(fillColor,lineColor, lineWidth);
-					//crear FrontFigure, en este caso un FrontRectangle
-				} else if (circleButton.isSelected()) {
-					double circleRadius = Math.abs(endPoint.getX() - startPoint.getX());
-					newFigure = new Circle(startPoint, circleRadius);
-					frontFigure = new FrontEllipse(fillColor,lineColor, lineWidth);
-				} else if (ellipseButton.isSelected()) {
-					newFigure = new Ellipse(startPoint, endPoint);
-					frontFigure = new FrontEllipse(fillColor,lineColor, lineWidth);
-				} else if (squareButton.isSelected()) {
-					newFigure = new Square(startPoint, endPoint);
-					frontFigure = new FrontRectangle(fillColor,lineColor, lineWidth);
-				} else {
-					return;
-				}
+//			FrontFigure frontFigure = null;
+//			Figure newFigure = null;
+//			if(lineButton.getButton().isSelected()){
+//				newFigure = new Line(startPoint, endPoint);
+//				frontFigure = new FrontLine(fillColor,lineColor, lineWidth);
+//			}
+//			else {
+//				if (endPoint.getX() < startPoint.getX() || endPoint.getY() < startPoint.getY()) {
+//					return;
+//				}
+//				for(NewShapeActionButton newShapeActionButton : newShapeActionButtonList){
+//					newShapeActionButton.createShape(endPoint);
+//				}
+//				if (rectangleButton.isSelected()) {  //todo para mañana: mejorar
+//					newFigure = new Rectangle(startPoint, endPoint);
+//					frontFigure = new FrontRectangle(fillColor,lineColor, lineWidth);
+//					//crear FrontFigure, en este caso un FrontRectangle
+//				} else if (circleButton.isSelected()) {
+//					double circleRadius = Math.abs(endPoint.getX() - startPoint.getX());
+//					newFigure = new Circle(startPoint, circleRadius);
+//					frontFigure = new FrontEllipse(fillColor,lineColor, lineWidth);
+//				} else if (ellipseButton.isSelected()) {
+//					newFigure = new Ellipse(startPoint, endPoint);
+//					frontFigure = new FrontEllipse(fillColor,lineColor, lineWidth);
+//				} else if (squareButton.isSelected()) {
+//					newFigure = new Square(startPoint, endPoint);
+//					frontFigure = new FrontRectangle(fillColor,lineColor, lineWidth);
+//				} else {
+//					return;
+//				}
 
-			}
-			//deselectAll();
-			canvasState.addFigure(newFigure);
-			frontFigureMap.put(newFigure.getId(),frontFigure);
-			//agreaga al mapa {id,FrontFigure}
-
-			startPoint = null;
+//			}
+//			//deselectAll();
+//			canvasState.addFigure(newFigure);
+//			frontFigureMap.put(newFigure.getId(),frontFigure);
+//			//agreaga al mapa {id,FrontFigure}
+//
+//			startPoint = null;
 			redrawCanvas();
 		});
 		canvas.setOnMouseMoved(event -> {
@@ -244,6 +282,10 @@ public class PaintPane extends BorderPane {
 		for(FrontFigure figure : frontFigureMap.values()){
 			figure.deselect();
 		}
+	}
+	void removeFigure(Figure figure){
+		canvasState.delete(figure);
+		frontFigureMap.remove(figure.getId());
 	}
 	void redrawCanvas() {
 		gc.clearRect(0, 0, canvas.getWidth(), canvas.getHeight());
