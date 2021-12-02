@@ -7,10 +7,10 @@ public class Ellipse extends Figure{
         this.centerPoint = new Point(topLeft.getX() + getxRadius(), bottomRight.getY() - getyRadius());
     }
     // Este es el que utiliza el círculo
-    protected Ellipse(Point centerPoint, double radius){
-        super(new Point(centerPoint.getX() - radius, centerPoint.getY()-radius), new Point(centerPoint.getX() + radius, centerPoint.getY() + radius));
-        this.centerPoint = centerPoint;
-    }
+//    protected Ellipse(Point centerPoint, double radius){
+//        super(new Point(centerPoint.getX() - radius, centerPoint.getY()-radius), new Point(centerPoint.getX() + radius, centerPoint.getY() + radius));
+//        this.centerPoint = centerPoint;
+//    }
     @Override
     protected Point[] getPoints(){
         return new Point[]{getTopLeft(), getBottomRight(),centerPoint};

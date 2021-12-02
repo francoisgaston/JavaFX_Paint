@@ -2,7 +2,9 @@ package com.example.tpe_final_poo.frontend;
 
 import com.example.tpe_final_poo.backend.CanvasState;
 import com.example.tpe_final_poo.backend.model.*;
+import com.example.tpe_final_poo.frontend.frontEndModel.FrontEllipse;
 import com.example.tpe_final_poo.frontend.frontEndModel.FrontFigure;
+import com.example.tpe_final_poo.frontend.frontEndModel.FrontLine;
 import com.example.tpe_final_poo.frontend.frontEndModel.FrontRectangle;
 import javafx.geometry.Insets;
 import javafx.scene.Cursor;
@@ -17,10 +19,12 @@ import javafx.scene.layout.VBox;
 import javafx.scene.paint.Color;
 
 import java.util.*;
+import java.util.function.BiPredicate;
 import java.util.function.Consumer;
 import java.util.function.Function;
 
 public class PaintPane extends BorderPane {
+	//TODO: ver si dejamos a las variables package protected o hacemos getters
 	//Funciones para obtener la figura
 	Function<PaintPane,FrontFigure> getFrontRectanlge = (paintPane) -> new FrontRectangle(paintPane.fillColor,paintPane.lineColor, paintPane.lineWidth);
 	// BackEnd
@@ -35,31 +39,19 @@ public class PaintPane extends BorderPane {
 
 
 	// Botones Barra Izquierda
-
+	BiPredicate<PaintPane,Point> TopLeftToBottomRight = (paintPane, endPoint)->endPoint.getX() >= paintPane.startPoint.getX() && endPoint.getY() >= paintPane.startPoint.getY();
 	ToggleButton selectionButton = new ToggleButton("Seleccionar");
 	ToggleButton deleteButton = new ToggleButton("Eliminar");
-	NewShapeActionButton rectangleButton = new NewShapeActionButton(new ToggleButton("Rectángulo"),this,
-			NewShapeActionButton.BackFigureFunction.RECTANGLE,
-			NewShapeActionButton.FrontFigureFunction.RECTANGLE);
+	//Ahora quedaron un poco mejor los botones
+	NewShapeActionButton rectangleButton = new NewShapeActionButton(new ToggleButton("Rectángulo"),this, Rectangle::new, FrontRectangle::new,TopLeftToBottomRight);
 	//ToggleButton circleButton = new ToggleButton("Círculo");
-	NewShapeActionButton circleButton = new NewShapeActionButton(new ToggleButton("Círculo"),this,
-			NewShapeActionButton.BackFigureFunction.CIRCLE,
-			NewShapeActionButton.FrontFigureFunction.ELLIPSE);
+	NewShapeActionButton circleButton = new NewShapeActionButton(new ToggleButton("Círculo"),this, Circle::new, FrontEllipse::new,TopLeftToBottomRight);
 	//ToggleButton ellipseButton = new ToggleButton("Elipse");
-	NewShapeActionButton ellipseButton = new NewShapeActionButton(new ToggleButton("Elipse"),this,
-			NewShapeActionButton.BackFigureFunction.ELLIPSE,
-			NewShapeActionButton.FrontFigureFunction.ELLIPSE
-			);
+	NewShapeActionButton ellipseButton = new NewShapeActionButton(new ToggleButton("Elipse"),this, Ellipse::new, FrontEllipse::new,TopLeftToBottomRight);
 	//ToggleButton squareButton = new ToggleButton("Cuadrado");
-	NewShapeActionButton squareButton = new NewShapeActionButton(new ToggleButton("Cuadrado"),this,
-			NewShapeActionButton.BackFigureFunction.SQUARE,
-			NewShapeActionButton.FrontFigureFunction.RECTANGLE
-			);
+	NewShapeActionButton squareButton = new NewShapeActionButton(new ToggleButton("Cuadrado"),this, Square::new, FrontRectangle::new,TopLeftToBottomRight);
 	//ToggleButton LineButton = new ToggleButton("Linea");
-	NewShapeActionButton lineButton = new NewShapeActionButton(new ToggleButton("Linea"),this,
-			NewShapeActionButton.BackFigureFunction.LINE,
-			NewShapeActionButton.FrontFigureFunction.LINE
-			);
+	NewShapeActionButton lineButton = new NewShapeActionButton(new ToggleButton("Linea"),this, Line::new, FrontLine::new,(a,b)->true);
 	ToggleButton moveToFront = new ToggleButton("Al Frente"); //Memorias de PI
 	ToggleButton moveToBack = new ToggleButton("Al Fondo");
 	ColorPicker fillColorPicker = new ColorPicker(fillColor);
@@ -79,7 +71,7 @@ public class PaintPane extends BorderPane {
 		this.canvasState = canvasState;
 		this.statusPane = statusPane;
 		NewShapeActionButton[] shapeButton = {rectangleButton,squareButton,circleButton,ellipseButton,lineButton};//TODO mejorar esto
-		lineButton.setCanCreate((a,b)->true);
+		//lineButton.setCanCreate((a,b)->true);
 		newShapeActionButtonList.addAll(Arrays.stream(shapeButton).toList());
 		ToggleButton[] toolsArr = {selectionButton, rectangleButton.getButton(), circleButton.getButton(), ellipseButton.getButton(), squareButton.getButton(), lineButton.getButton(),moveToFront,moveToBack,deleteButton};
 		ToggleGroup tools = new ToggleGroup();
@@ -166,7 +158,7 @@ public class PaintPane extends BorderPane {
 				StringBuilder label = new StringBuilder("Se seleccionó: ");
 				//Hacer un metodo que vaya por todas las figuras y devuelva el Label
 				//deselectAll();
-				//TODO: tiene sentido que esto este aca
+				//TODO: tiene sentido que esto este aca, arreglarlo despues
 				for (Figure figure : canvasState.figures()){
 					if(figure.pointBelongs(eventPoint)) {
 						found = true;
