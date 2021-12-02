@@ -28,8 +28,8 @@ public class PaintPane extends BorderPane {
 	private GraphicsContext gc = canvas.getGraphicsContext2D();
 	private Color lineColor = Color.BLACK;
 	private Color fillColor = Color.YELLOW;
-	double maxLineWidth = 50;
-	double lineWidth = 1;
+	private double maxLineWidth = 50;
+	private double lineWidth = 1;
 
 
 	// Botones Barra Izquierda
@@ -47,15 +47,22 @@ public class PaintPane extends BorderPane {
 	private ColorPicker lineColorPicker = new ColorPicker(lineColor);
 	private Slider lineWidthSlider = new Slider(1,maxLineWidth,lineWidth);
 	private Point startPoint;
-	private Rectangle selectionrectangle = null;
 	//private Figure selectedFigure;
+	private Figure selectedFigure = null;
 	private List<NewShapeActionButton> newShapeActionButtonList = new ArrayList<>();
 	private StatusPane statusPane;
 	boolean inFigure;
 	private Rectangle selectionRectangle = null;
+	private final String NOT_FIGURE_SELECTED = "Ninguna figura seleccionada";
+
+	//Colecciones
 	//Map que almacena como claves a los IDs de las figuras y como claves a las FrontFigures
 	private Map<Integer, FrontFigure> frontFigureMap = new HashMap<>();
+	//Set que almacena las figuras seleccionadas
+	private Set<Figure> selectedFigures = new HashSet<>();
+
 	//para actualizar el texto cuando estoy sobre la figura
+	//PaintPane: manejo de botones, figuras y status pane.
 	public PaintPane(CanvasState canvasState, StatusPane statusPane) {
 		this.canvasState = canvasState;
 		this.statusPane = statusPane;
@@ -69,6 +76,7 @@ public class PaintPane extends BorderPane {
 			tool.setCursor(Cursor.HAND);
 			tool.setStyle("-fx-font-size:12");
 		}
+		//Creacion de la seccion de botones
 		VBox buttonsBox = new VBox(10);
 		buttonsBox.setPadding(new Insets(5));
 		buttonsBox.setStyle("-fx-background-color: #999");
@@ -89,8 +97,9 @@ public class PaintPane extends BorderPane {
 		moveToBack.setOnAction(event -> doIfAnyFigureSelected(canvasState::moveToBack));
 		//deleteButton.setOnAction(event-> forEachSelectedFigure(this::removeFigure));
 		//Alerta para cuando clickeo borrar sin haber seleccionado algo
-		deleteButton.setOnAction(event -> { doIfAnyFigureSelected(this::removeFigure);});
-		//if ((!isSomeFigureSelected())) {statusPane.updateStatus("Debe seleccionar una figura");} else { forEachSelectedFigure(this::removeFigure);}});
+		deleteButton.setOnAction(event -> { doIfAnyFigureSelected(this::removeFigure);
+			selectedFigures.clear(); //Hay que hacerlo aca para no tener una ConcurrentModificationException
+		});
 		fillColorPicker.setOnAction(event-> {
 			fillColor = fillColorPicker.getValue();
 			forEachSelectedFigure(figure->frontFigureMap.get(figure.getId()).setFillColor(fillColor));
@@ -120,8 +129,7 @@ public class PaintPane extends BorderPane {
 			}
 			if(selectionButton.isSelected()) {
 				StringBuilder label = new StringBuilder("Se seleccionó: ");
-				if (startPoint.equals(endPoint)) {//Hace clic, medio raro
-					Figure selectedFigure = null;
+				if (startPoint.equals(endPoint)) {//Hace clic, medio
 					for (Figure figure : canvasState.figures()) {
 						if (figure.pointBelongs(endPoint)) {
 							selectedFigure = figure;
@@ -131,11 +139,12 @@ public class PaintPane extends BorderPane {
 					if (selectedFigure != null) {
 						//deselectAll();
 						label.append(selectedFigure);
+						selectedFigures.add(selectedFigure);
 						statusPane.updateStatus(label.toString());
 						frontFigureMap.get(selectedFigure.getId()).select();
 					} else {
 						//deselectAll();
-						statusPane.updateStatus("Ninguna figura seleccionada");
+						statusPane.updateStatus(NOT_FIGURE_SELECTED);
 					}
 				}else { //crea un rectangulo
 					if (!inFigure) {
@@ -143,13 +152,14 @@ public class PaintPane extends BorderPane {
 						selectionRectangle = new Rectangle(startPoint, endPoint);
 						for (Figure figure : canvasState.figures()) {
 							if (figure.isInRectangle(selectionRectangle)) {
+								selectedFigures.add(figure);
 								frontFigureMap.get(figure.getId()).select();
 								label.append(figure);
 							}
 						}
 						statusPane.updateStatus(label.toString());
 					}else{
-						statusPane.updateStatus("Ninguna figura seleccionada");
+						statusPane.updateStatus(NOT_FIGURE_SELECTED);
 					}
 				}
 			}
@@ -163,7 +173,7 @@ public class PaintPane extends BorderPane {
 				if(figure.pointBelongs(eventPoint)) {
 
 					found = true;
-					label.append(figure.toString());
+					label.append(figure);
 				}
 			}
 			if(found) {
@@ -172,21 +182,6 @@ public class PaintPane extends BorderPane {
 				statusPane.updateStatus(eventPoint.toString());
 			}
 		});
-
-
-
-		/*
-
-		aboutMenuItem.setOnAction(event -> {
-            Alert alert = new Alert(Alert.AlertType.INFORMATION);
-            alert.setTitle("Acerca De");
-            alert.setHeaderText("Paint");
-            alert.setContentText("TPE Final POO Diciembre 2021");
-            alert.showAndWait();
-        });
-		 */
-
-
 		// Mouse Clickeado
 //		canvas.setOnMouseClicked(event->{
 //			//Any figure selected
@@ -259,10 +254,9 @@ public class PaintPane extends BorderPane {
 		//});
 		canvas.setOnMouseDragged(event -> {
 			if(selectionButton.isSelected()) {
-				Point eventPoint = new Point(event.getX(), event.getY());
-				double diffX = (eventPoint.getX() - startPoint.getX()) / 100;
-				double diffY = (eventPoint.getY() - startPoint.getY()) / 100;
-				if (inFigure) {
+				double diffX = (event.getX() - startPoint.getX()) / 100;
+				double diffY = (event.getY() - startPoint.getY()) / 100;
+				if (inFigure) { //Se mueve solo si se inicia el movimiento dentro de la figura
 					forEachSelectedFigure(figure -> {
 						figure.moveX(diffX);
 						figure.moveY(diffY);
@@ -275,9 +269,10 @@ public class PaintPane extends BorderPane {
 		setRight(canvas);
 	}
 	private void deselectAll(){
-		for(FrontFigure figure : frontFigureMap.values()){
-			figure.deselect();
+		for(Figure figure : selectedFigures){
+			frontFigureMap.get(figure.getId()).deselect();
 		}
+		selectedFigures.clear();
 	}
 	private void removeFigure(Figure figure){
 		canvasState.delete(figure);
@@ -293,37 +288,29 @@ public class PaintPane extends BorderPane {
 		}
 	}
 	private void forEachSelectedFigure(Consumer<Figure> consumer){
-		for(Figure figure : canvasState.figures()){
-			if(frontFigureMap.get(figure.getId()).isSelected()){
-				consumer.accept(figure);
-			}
+		for(Figure figure : selectedFigures){
+			consumer.accept(figure);
 		}
 		redrawCanvas();
 	}
-	private boolean isSomeFigureSelected(){
-		for(Figure figure : canvasState.figures()){
-			if(frontFigureMap.get(figure.getId()).isSelected()){
-				return true;
-			}
-		}
-		return false;
-	}
 	private void doIfAnyFigureSelected(Consumer<Figure> consumer){
-		if(!isSomeFigureSelected()){
-			statusPane.updateStatus("Debe seleccionar una figura");
+		if(selectedFigures.isEmpty()){
+			statusPane.updateStatus(NOT_FIGURE_SELECTED);
 		}else{
 			forEachSelectedFigure(consumer);
 		}
 	}
 	private boolean belongSelectedFigure(Point startPoint){
-		for(Figure figure : canvasState.figures()){
-			if(frontFigureMap.get(figure.getId()).isSelected() && figure.pointBelongs(startPoint)){
+		for(Figure figure :selectedFigures){
+			if(figure.pointBelongs(startPoint)){
 				return true;
 			}
 		}
 		return false;
 	}
 	//TODO: preguntar si el rectángulo imaginario debe poder dibujarse en todas las direcciones o solo de izquierda a derecha y arriba a abajo
+
+	//Métodos que usa newShapeActionButton para agregar las figuras al mapa
 	public void addBackFigure(Figure figure){
 		canvasState.addFigure(figure);
 	}

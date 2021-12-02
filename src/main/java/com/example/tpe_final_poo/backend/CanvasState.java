@@ -26,7 +26,6 @@ public class CanvasState {
     }
     public void moveToFront(Figure figure){
         if(deque.remove(figure)){
-            //System.out.println(figure);
             deque.addLast(figure);
         }
     }
