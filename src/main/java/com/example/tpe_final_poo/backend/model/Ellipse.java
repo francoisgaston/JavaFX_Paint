@@ -30,7 +30,7 @@ public class Ellipse extends Figure{
     }
     @Override
     public boolean pointBelongs(Point point){
-        double elem1 = Math.pow(point.getX() - centerPoint.getX(), 2) / ( getyRadius() * getxRadius() );
+        double elem1 = Math.pow(point.getX() - centerPoint.getX(), 2) / ( getxRadius() * getxRadius() );
         double elem2 = Math.pow(point.getY() - centerPoint.getY(), 2) / ( getyRadius() * getyRadius() );
         return elem1 + elem2 <= 1;
     }
