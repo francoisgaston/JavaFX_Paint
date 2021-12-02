@@ -21,55 +21,45 @@ import java.util.function.Consumer;
 import java.util.function.Function;
 
 public class PaintPane extends BorderPane {
-	//TODO: ver si dejamos a las variables package protected o hacemos getters
-	//Funciones para obtener la figura
-	//Function<PaintPane,FrontFigure> getFrontRectanlge = (paintPane) -> new FrontRectangle(paintPane.fillColor,paintPane.lineColor, paintPane.lineWidth);
-	// BackEnd
-	CanvasState canvasState;
+	private CanvasState canvasState;
 
 	// Canvas y relacionados
-	Canvas canvas = new Canvas(800, 600);
-	GraphicsContext gc = canvas.getGraphicsContext2D();
-	Color lineColor = Color.BLACK;
-	Color fillColor = Color.YELLOW;
+	private Canvas canvas = new Canvas(800, 600);
+	private GraphicsContext gc = canvas.getGraphicsContext2D();
+	private Color lineColor = Color.BLACK;
+	private Color fillColor = Color.YELLOW;
 	double maxLineWidth = 50;
 	double lineWidth = 1;
 
 
 	// Botones Barra Izquierda
-	BiPredicate<PaintPane,Point> TopLeftToBottomRight = (paintPane, endPoint)->endPoint.getX() >= paintPane.startPoint.getX() && endPoint.getY() >= paintPane.startPoint.getY();
-	ToggleButton selectionButton = new ToggleButton("Seleccionar");
-	//Ahora quedaron un poco mejor los botones
-	NewShapeActionButton rectangleButton = new NewShapeActionButton(new ToggleButton("Rectángulo"),this, Rectangle::new, FrontRectangle::new,TopLeftToBottomRight);
-	//ToggleButton circleButton = new ToggleButton("Círculo");
-	NewShapeActionButton circleButton = new NewShapeActionButton(new ToggleButton("Círculo"),this, Circle::new, FrontEllipse::new,TopLeftToBottomRight);
-	//ToggleButton ellipseButton = new ToggleButton("Elipse");
-	NewShapeActionButton ellipseButton = new NewShapeActionButton(new ToggleButton("Elipse"),this, Ellipse::new, FrontEllipse::new,TopLeftToBottomRight);
-	//ToggleButton squareButton = new ToggleButton("Cuadrado");
-	NewShapeActionButton squareButton = new NewShapeActionButton(new ToggleButton("Cuadrado"),this, Square::new, FrontRectangle::new,TopLeftToBottomRight);
-	//ToggleButton LineButton = new ToggleButton("Linea");
-	NewShapeActionButton lineButton = new NewShapeActionButton(new ToggleButton("Linea"),this, Line::new, FrontLine::new,(a,b)->true);
-	ToggleButton deleteButton = new ToggleButton("Borrar");
-	ToggleButton moveToFront = new ToggleButton("Al Frente");
-	ToggleButton moveToBack = new ToggleButton("Al Fondo");
-	ColorPicker fillColorPicker = new ColorPicker(fillColor);
-	ColorPicker lineColorPicker = new ColorPicker(lineColor);
-	Slider lineWidthSlider = new Slider(1,maxLineWidth,lineWidth);
-	Point startPoint;
-
-	Figure selectedFigure;
-	List<NewShapeActionButton> newShapeActionButtonList = new ArrayList<>();
-	StatusPane statusPane;
+	private BiPredicate<Point,Point> TopLeftToBottomRight = (startPoint, endPoint)->endPoint.getX() >= startPoint.getX() && endPoint.getY() >= startPoint.getY();
+	private ToggleButton selectionButton = new ToggleButton("Seleccionar");
+	private NewShapeActionButton rectangleButton = new NewShapeActionButton(new ToggleButton("Rectángulo"), Rectangle::new , FrontRectangle::new ,TopLeftToBottomRight);
+	private NewShapeActionButton circleButton = new NewShapeActionButton(new ToggleButton("Círculo"), Circle::new, FrontEllipse::new,TopLeftToBottomRight);
+	private NewShapeActionButton ellipseButton = new NewShapeActionButton(new ToggleButton("Elipse"), Ellipse::new, FrontEllipse::new,TopLeftToBottomRight);
+	private NewShapeActionButton squareButton = new NewShapeActionButton(new ToggleButton("Cuadrado"), Square::new, FrontRectangle::new,TopLeftToBottomRight);
+	private NewShapeActionButton lineButton = new NewShapeActionButton(new ToggleButton("Linea"), Line::new, FrontLine::new,(a,b)->true);
+	private ToggleButton deleteButton = new ToggleButton("Borrar");
+	private ToggleButton moveToFront = new ToggleButton("Al Frente");
+	private ToggleButton moveToBack = new ToggleButton("Al Fondo");
+	private ColorPicker fillColorPicker = new ColorPicker(fillColor);
+	private ColorPicker lineColorPicker = new ColorPicker(lineColor);
+	private Slider lineWidthSlider = new Slider(1,maxLineWidth,lineWidth);
+	private Point startPoint;
+	private Rectangle selectionrectangle = null;
+	//private Figure selectedFigure;
+	private List<NewShapeActionButton> newShapeActionButtonList = new ArrayList<>();
+	private StatusPane statusPane;
 	boolean inFigure;
-	Rectangle selectionRectangle = null;
+	private Rectangle selectionRectangle = null;
 	//Map que almacena como claves a los IDs de las figuras y como claves a las FrontFigures
-	Map<Integer, FrontFigure> frontFigureMap = new HashMap<>();
+	private Map<Integer, FrontFigure> frontFigureMap = new HashMap<>();
 	//para actualizar el texto cuando estoy sobre la figura
 	public PaintPane(CanvasState canvasState, StatusPane statusPane) {
 		this.canvasState = canvasState;
 		this.statusPane = statusPane;
-		NewShapeActionButton[] shapeButton = {rectangleButton,squareButton,circleButton,ellipseButton,lineButton};//TODO mejorar esto
-		//lineButton.setCanCreate((a,b)->true);
+		NewShapeActionButton[] shapeButton = {rectangleButton,squareButton,circleButton,ellipseButton,lineButton};//TODO mejorar es
 		newShapeActionButtonList.addAll(Arrays.stream(shapeButton).toList());
 		ToggleButton[] toolsArr = {selectionButton, rectangleButton.getButton(), circleButton.getButton(), squareButton.getButton(), ellipseButton.getButton(), lineButton.getButton(), deleteButton ,moveToFront, moveToBack};
 		ToggleGroup tools = new ToggleGroup();
@@ -84,7 +74,7 @@ public class PaintPane extends BorderPane {
 		buttonsBox.setStyle("-fx-background-color: #999");
 		buttonsBox.setPrefWidth(100);
 		buttonsBox.getChildren().addAll(toolsArr);
-
+		//Configuracion de botones
 		buttonsBox.getChildren().add(new Label("Borde"));
 		lineWidthSlider.setMajorTickUnit(maxLineWidth/2);
 		lineWidthSlider.setShowTickMarks(true);
@@ -95,9 +85,12 @@ public class PaintPane extends BorderPane {
 		buttonsBox.getChildren().addAll(fillColorPicker);
 
 		gc.setLineWidth(1);
-		moveToFront.setOnAction(even->forEachSelectedFigure(canvasState::moveToFront));
-		moveToBack.setOnAction(event-> forEachSelectedFigure(canvasState::moveToBack));
-		deleteButton.setOnAction(event-> forEachSelectedFigure(this::removeFigure));
+		moveToFront.setOnAction(event -> doIfAnyFigureSelected(canvasState::moveToFront));
+		moveToBack.setOnAction(event -> doIfAnyFigureSelected(canvasState::moveToBack));
+		//deleteButton.setOnAction(event-> forEachSelectedFigure(this::removeFigure));
+		//Alerta para cuando clickeo borrar sin haber seleccionado algo
+		deleteButton.setOnAction(event -> { doIfAnyFigureSelected(this::removeFigure);});
+		//if ((!isSomeFigureSelected())) {statusPane.updateStatus("Debe seleccionar una figura");} else { forEachSelectedFigure(this::removeFigure);}});
 		fillColorPicker.setOnAction(event-> {
 			fillColor = fillColorPicker.getValue();
 			forEachSelectedFigure(figure->frontFigureMap.get(figure.getId()).setFillColor(fillColor));
@@ -122,16 +115,16 @@ public class PaintPane extends BorderPane {
 				return ;
 			}
 			for(NewShapeActionButton newShapeActionButton : newShapeActionButtonList){
-					newShapeActionButton.createShape(endPoint);
+					newShapeActionButton.createShape(startPoint,endPoint,fillColor,lineColor,lineWidth,this);
+					deselectAll();
 			}
 			if(selectionButton.isSelected()) {
-				if (startPoint.equals(endPoint)) {//Hace clic
-					StringBuilder label = new StringBuilder("Se seleccionó: ");
+				StringBuilder label = new StringBuilder("Se seleccionó: ");
+				if (startPoint.equals(endPoint)) {//Hace clic, medio raro
 					Figure selectedFigure = null;
 					for (Figure figure : canvasState.figures()) {
 						if (figure.pointBelongs(endPoint)) {
 							selectedFigure = figure;
-							//label.append(figure);
 						}
 					}
 					deselectAll();
@@ -144,32 +137,22 @@ public class PaintPane extends BorderPane {
 						//deselectAll();
 						statusPane.updateStatus("Ninguna figura seleccionada");
 					}
-				}else {
+				}else { //crea un rectangulo
 					if (!inFigure) {
+						deselectAll();
 						selectionRectangle = new Rectangle(startPoint, endPoint);
 						for (Figure figure : canvasState.figures()) {
 							if (figure.isInRectangle(selectionRectangle)) {
 								frontFigureMap.get(figure.getId()).select();
+								label.append(figure);
 							}
 						}
+						statusPane.updateStatus(label.toString());
+					}else{
+						statusPane.updateStatus("Ninguna figura seleccionada");
 					}
 				}
 			}
-//			if(selectionButton.isSelected()){
-//				selectionRectangle  = new Rectangle(startPoint,endPoint);
-//				for(Figure figure : canvasState.figures()){
-//					if (figure.isInRectangle(selectionRectangle)){
-//						//System.out.println("Seleccionada!");
-//						frontFigureMap.get(figure.getId()).select();
-//					}
-////					else{
-////						frontFigureMap.get(figure.getId()).deselect();
-////					}
-//				}
-//			}
-//			else{
-//				selectionRectangle = null;
-//			}
 			redrawCanvas();
 		});
 		canvas.setOnMouseMoved(event -> {
@@ -189,6 +172,21 @@ public class PaintPane extends BorderPane {
 				statusPane.updateStatus(eventPoint.toString());
 			}
 		});
+
+
+
+		/*
+
+		aboutMenuItem.setOnAction(event -> {
+            Alert alert = new Alert(Alert.AlertType.INFORMATION);
+            alert.setTitle("Acerca De");
+            alert.setHeaderText("Paint");
+            alert.setContentText("TPE Final POO Diciembre 2021");
+            alert.showAndWait();
+        });
+		 */
+
+
 		// Mouse Clickeado
 //		canvas.setOnMouseClicked(event->{
 //			//Any figure selected
@@ -264,35 +262,28 @@ public class PaintPane extends BorderPane {
 				Point eventPoint = new Point(event.getX(), event.getY());
 				double diffX = (eventPoint.getX() - startPoint.getX()) / 100;
 				double diffY = (eventPoint.getY() - startPoint.getY()) / 100;
-//				if (selectedFigure !=null) {
-//					selectedFigure.moveX(diffX);
-//					selectedFigure.moveY(diffY);
-//
-//				for(Figure figure : canvasState.figures()){
-//					if(frontFigureMap.get(figure.getId()).isSelected()){
-//						moving = true;
-//					}
-//				}
-				forEachSelectedFigure(figure -> {
-					figure.moveX(diffX);
-					figure.moveY(diffY);
-				});
+				if (inFigure) {
+					forEachSelectedFigure(figure -> {
+						figure.moveX(diffX);
+						figure.moveY(diffY);
+					});
+				}
 				redrawCanvas();
 			}
 		});
 		setLeft(buttonsBox);
 		setRight(canvas);
 	}
-	void deselectAll(){
+	private void deselectAll(){
 		for(FrontFigure figure : frontFigureMap.values()){
 			figure.deselect();
 		}
 	}
-	void removeFigure(Figure figure){
+	private void removeFigure(Figure figure){
 		canvasState.delete(figure);
 		frontFigureMap.remove(figure.getId());
 	}
-	void redrawCanvas() {
+	private void redrawCanvas() {
 		gc.clearRect(0, 0, canvas.getWidth(), canvas.getHeight());
 		//borra las figuras
 		for(Figure figure : canvasState.figures()) {
@@ -301,7 +292,7 @@ public class PaintPane extends BorderPane {
 			frontFigureMap.get(figure.getId()).draw(gc,figure);
 		}
 	}
-	public void forEachSelectedFigure(Consumer<Figure> consumer){
+	private void forEachSelectedFigure(Consumer<Figure> consumer){
 		for(Figure figure : canvasState.figures()){
 			if(frontFigureMap.get(figure.getId()).isSelected()){
 				consumer.accept(figure);
@@ -309,7 +300,22 @@ public class PaintPane extends BorderPane {
 		}
 		redrawCanvas();
 	}
-	public boolean belongSelectedFigure(Point startPoint){
+	private boolean isSomeFigureSelected(){
+		for(Figure figure : canvasState.figures()){
+			if(frontFigureMap.get(figure.getId()).isSelected()){
+				return true;
+			}
+		}
+		return false;
+	}
+	private void doIfAnyFigureSelected(Consumer<Figure> consumer){
+		if(!isSomeFigureSelected()){
+			statusPane.updateStatus("Debe seleccionar una figura");
+		}else{
+			forEachSelectedFigure(consumer);
+		}
+	}
+	private boolean belongSelectedFigure(Point startPoint){
 		for(Figure figure : canvasState.figures()){
 			if(frontFigureMap.get(figure.getId()).isSelected() && figure.pointBelongs(startPoint)){
 				return true;
@@ -317,6 +323,11 @@ public class PaintPane extends BorderPane {
 		}
 		return false;
 	}
-	//TODO: preguntar si el rectangulo imaginario debe poder dibujarse en todas las direcciones o solo de izquierda a derecha y arriba a abajo
-
+	//TODO: preguntar si el rectángulo imaginario debe poder dibujarse en todas las direcciones o solo de izquierda a derecha y arriba a abajo
+	public void addBackFigure(Figure figure){
+		canvasState.addFigure(figure);
+	}
+	public void addFrontFigure(Figure figure, FrontFigure frontFigure){
+		frontFigureMap.put(figure.getId(),frontFigure);
+	}
 }

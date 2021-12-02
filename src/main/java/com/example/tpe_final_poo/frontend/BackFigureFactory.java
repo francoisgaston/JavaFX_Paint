@@ -5,5 +5,5 @@ import com.example.tpe_final_poo.backend.model.Point;
 
 @FunctionalInterface
 public interface BackFigureFactory {
-    Figure get(Point topLeft, Point bottomRight);
+    Figure get(Point startPoint, Point endPoint);
 }
