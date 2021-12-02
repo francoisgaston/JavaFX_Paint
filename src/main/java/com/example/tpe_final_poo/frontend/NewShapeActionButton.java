@@ -58,7 +58,8 @@ public class NewShapeActionButton {//Esto deberia ser un Enum, despues lo vemos
         RECTANGLE((endPoint,paintPane)->new Rectangle(paintPane.startPoint,endPoint)),
         ELLIPSE((endPoint,paintPane)-> new Ellipse(paintPane.startPoint, endPoint)),
         CIRCLE((endPoint,paintPane)->new Circle(paintPane.startPoint,  Math.abs(endPoint.getX() - paintPane.startPoint.getX()))),
-        LINE((endPoint,paintPane)-> new Line(paintPane.startPoint, endPoint));
+        LINE((endPoint,paintPane)-> new Line(paintPane.startPoint, endPoint)),
+        SQUARE((endPoint,paintPane)->new Square(paintPane.startPoint,endPoint));
         private BiFunction<Point,PaintPane, Figure> backFigureFunction;
 
         BackFigureFunction(BiFunction<Point, PaintPane, Figure> backFigureFunction) {

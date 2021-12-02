@@ -19,7 +19,6 @@ import javafx.scene.paint.Color;
 import java.util.*;
 import java.util.function.Consumer;
 import java.util.function.Function;
-import java.util.function.Predicate;
 
 public class PaintPane extends BorderPane {
 	//Funciones para obtener la figura
@@ -53,7 +52,7 @@ public class PaintPane extends BorderPane {
 			);
 	//ToggleButton squareButton = new ToggleButton("Cuadrado");
 	NewShapeActionButton squareButton = new NewShapeActionButton(new ToggleButton("Cuadrado"),this,
-			NewShapeActionButton.BackFigureFunction.RECTANGLE,
+			NewShapeActionButton.BackFigureFunction.SQUARE,
 			NewShapeActionButton.FrontFigureFunction.RECTANGLE
 			);
 	//ToggleButton LineButton = new ToggleButton("Linea");
@@ -72,7 +71,7 @@ public class PaintPane extends BorderPane {
 	List<NewShapeActionButton> newShapeActionButtonList = new ArrayList<>();
 	StatusPane statusPane;
 
-
+	Rectangle selectionRectangle = null;
 	//Map que almacena como claves a los IDs de las figuras y como claves a las FrontFigures
 	Map<Integer, FrontFigure> frontFigureMap = new HashMap<>();
 	//para actualizar el texto cuando estoy sobre la figura
@@ -99,53 +98,25 @@ public class PaintPane extends BorderPane {
 		buttonsBox.setPrefWidth(100);
 		gc.setLineWidth(1);
 		moveToFront.setOnAction(even->{
-			forEachFigure(canvasState::moveToFront);
+			forEachSelectedFigure(canvasState::moveToFront);
 		});
-		//activateButton(moveToFront, (figure) -> canvasState.moveToFront(figure));
-		moveToBack.setOnAction(event->{
-//			canvasState.figures().forEach((figure->{
-//				if(checkFigure){
-//					cas
-//				}
-//			}));
-			forEachFigure(canvasState::moveToBack);
-//			for(Figure figure : canvasState.figures()){
-//				if(frontFigureMap.get(figure.getId()).isSelected()){
-//					canvasState.moveToBack(figure);
-//				}
-//			}
+		moveToBack.setOnAction(event-> forEachSelectedFigure(canvasState::moveToBack));
+		deleteButton.setOnAction(event-> forEachSelectedFigure(this::removeFigure));
+		fillColorPicker.setOnAction(event-> {
+			fillColor = fillColorPicker.getValue();
+			forEachSelectedFigure(figure->frontFigureMap.get(figure.getId()).setFillColor(fillColor));
 		});
-		deleteButton.setOnAction(event->{
-			forEachFigure(this::removeFigure);
-//			for(Figure figure : canvasState.figures()){
-//				if(frontFigureMap.get(figure.getId()).isSelected()){
-//					removeFigure(figure);
-//				}
-//			}
-//			redrawCanvas();
+		lineColorPicker.setOnAction(event-> {
+			lineColor = lineColorPicker.getValue();
+			forEachSelectedFigure(figure->frontFigureMap.get(figure.getId()).setLineColor(lineColor));
 		});
-//		//Esto es en el ButtonBox
-//		buttonsBox.setOnMouseClicked(event->{ //para cuando todo los botones
-//			if(moveToFront.isSelected()){
-//				for(Figure figure : canvasState.figures()){
-//					if(frontFigureMap.get(figure).isSelected()){//Todo: hacer una funcion y pasar un lamda
-//						canvasState.moveToFront(figure);
-//					}
-//				}
-//				redrawCanvas();
-//			}else if(moveToBack.isSelected()){
-//				for(Figure figure : canvasState.figures()){
-//					if(frontFigureMap.get(figure).isSelected()){
-//						canvasState.moveToBack(figure);
-//					}
-//				}
-//				redrawCanvas();
-//			}
-//		});
-		canvas.setOnMousePressed(event -> {
-			startPoint = new Point(event.getX(), event.getY());
-			//deselectAll(); //Todo: arreglar
+		lineWidthSlider.setOnMouseDragged(event->{
+			lineWidth = lineWidthSlider.getValue();
+			forEachSelectedFigure(figure->frontFigureMap.get(figure.getId()).setLineWidth(lineWidth));
 		});
+
+		canvas.setOnMousePressed(event -> startPoint = new Point(event.getX(), event.getY()));
+
 		canvas.setOnMouseReleased(event -> {
 			Point endPoint = new Point(event.getX(), event.getY());
 			if(startPoint == null) {
@@ -154,44 +125,17 @@ public class PaintPane extends BorderPane {
 			for(NewShapeActionButton newShapeActionButton : newShapeActionButtonList){
 					newShapeActionButton.createShape(endPoint);
 			}
-//			FrontFigure frontFigure = null;
-//			Figure newFigure = null;
-//			if(lineButton.getButton().isSelected()){
-//				newFigure = new Line(startPoint, endPoint);
-//				frontFigure = new FrontLine(fillColor,lineColor, lineWidth);
-//			}
-//			else {
-//				if (endPoint.getX() < startPoint.getX() || endPoint.getY() < startPoint.getY()) {
-//					return;
-//				}
-//				for(NewShapeActionButton newShapeActionButton : newShapeActionButtonList){
-//					newShapeActionButton.createShape(endPoint);
-//				}
-//				if (rectangleButton.isSelected()) {  //todo para mañana: mejorar
-//					newFigure = new Rectangle(startPoint, endPoint);
-//					frontFigure = new FrontRectangle(fillColor,lineColor, lineWidth);
-//					//crear FrontFigure, en este caso un FrontRectangle
-//				} else if (circleButton.isSelected()) {
-//					double circleRadius = Math.abs(endPoint.getX() - startPoint.getX());
-//					newFigure = new Circle(startPoint, circleRadius);
-//					frontFigure = new FrontEllipse(fillColor,lineColor, lineWidth);
-//				} else if (ellipseButton.isSelected()) {
-//					newFigure = new Ellipse(startPoint, endPoint);
-//					frontFigure = new FrontEllipse(fillColor,lineColor, lineWidth);
-//				} else if (squareButton.isSelected()) {
-//					newFigure = new Square(startPoint, endPoint);
-//					frontFigure = new FrontRectangle(fillColor,lineColor, lineWidth);
-//				} else {
-//					return;
-//				}
-
-//			}
-//			//deselectAll();
-//			canvasState.addFigure(newFigure);
-//			frontFigureMap.put(newFigure.getId(),frontFigure);
-//			//agreaga al mapa {id,FrontFigure}
-//
-//			startPoint = null;
+			if(selectionButton.isSelected()){
+				selectionRectangle  = new Rectangle(startPoint,endPoint);
+				for(Figure figure : canvasState.figures()){
+					if (figure.isInRectangle(selectionRectangle)){
+						//System.out.println("Seleccionada!");
+						frontFigureMap.get(figure.getId()).select();
+					}
+				}
+			}else{
+				selectionRectangle = null;
+			}
 			redrawCanvas();
 		});
 		canvas.setOnMouseMoved(event -> {
@@ -212,27 +156,33 @@ public class PaintPane extends BorderPane {
 			}
 		});
 		// Mouse Clickeado
-		canvas.setOnMouseClicked(event -> {
+		canvas.setOnMouseClicked(event -> { //cambiar cuando hagamos lo de seleccion multiple
 			if(selectionButton.isSelected()) {
+				if(selectionRectangle==null){
+					deselectAll();
+				}
 				Point eventPoint = new Point(event.getX(), event.getY());
 				boolean found = false;
 				StringBuilder label = new StringBuilder("Se seleccionó: ");
 				//Hacer un metodo que vaya por todas las figuras y devuelva el Label
-				for (Figure figure : canvasState.figures()) {
+				//deselectAll();
+				//TODO: tiene sentido que esto este aca
+				for (Figure figure : canvasState.figures()){
 					if(figure.pointBelongs(eventPoint)) {
 						found = true;
-						frontFigureMap.get(figure.getId()).select();
 						selectedFigure = figure;
-						label.append(figure.toString());
-					} else{
-						frontFigureMap.get(figure.getId()).deselect();
+						label.append(figure);
 					}
 				}
 				if (found) {
 					statusPane.updateStatus(label.toString());
+					frontFigureMap.get(selectedFigure.getId()).select();
 				} else {
 					selectedFigure = null;
 					statusPane.updateStatus("Ninguna figura encontrada");
+				}
+				if(startPoint==null){
+					deselectAll();
 				}
 				redrawCanvas();
 			}else{
@@ -245,54 +195,17 @@ public class PaintPane extends BorderPane {
 				Point eventPoint = new Point(event.getX(), event.getY());
 				double diffX = (eventPoint.getX() - startPoint.getX()) / 100;
 				double diffY = (eventPoint.getY() - startPoint.getY()) / 100;
-				if (selectedFigure !=null) {
-					selectedFigure.moveX(diffX);
-					selectedFigure.moveY(diffY);
-				}
+//				if (selectedFigure !=null) {
+//					selectedFigure.moveX(diffX);
+//					selectedFigure.moveY(diffY);
+//				}
+				forEachSelectedFigure(figure->{
+					figure.moveX(diffX);
+					figure.moveY(diffY);
+				});
 				redrawCanvas();
 			}
 		});
-		fillColorPicker.setOnAction(event-> {
-			fillColor = fillColorPicker.getValue();
-			forEachFigure(figure->frontFigureMap.get(figure.getId()).setFillColor(fillColor));
-//			for(Figure figure : canvasState.figures()){
-//				if(frontFigureMap.get(figure.getId()).isSelected()){
-//					frontFigureMap.get(figure.getId()).setFillColor(fillColor);
-//				}
-//			}
-//			redrawCanvas();
-		});
-		lineColorPicker.setOnAction(event-> {
-			lineColor = lineColorPicker.getValue();
-			forEachFigure(figure->frontFigureMap.get(figure.getId()).setLineColor(lineColor));
-//			for(Figure figure : canvasState.figures()){
-//				if(frontFigureMap.get(figure.getId()).isSelected()){
-//					frontFigureMap.get(figure.getId()).setLineColor(lineColor);
-//				}
-//			}
-//			redrawCanvas();
-		});
-
-		lineWidthSlider.setOnMouseDragged(event->{
-			lineWidth = lineWidthSlider.getValue();
-			forEachFigure(figure->frontFigureMap.get(figure.getId()).setLineWidth(lineWidth));
-//			for(Figure figure : canvasState.figures()){
-//				if(frontFigureMap.get(figure.getId()).isSelected()){
-//					frontFigureMap.get(figure.getId()).setLineWidth(lineWidth);
-//				}
-//			}
-//			redrawCanvas();
-		});
-
-//		lineWidthSlider.setOnMouseDragged(event->{
-//			lineWidth = lineWidthSlider.getValue();
-//			for(Figure figure : canvasState.figures()){
-//				if(frontFigureMap.get(figure.getId()).isSelected()){
-//					frontFigureMap.get(figure.getId()).setLineWidth(lineWidth);
-//				}
-//			}
-//			redrawCanvas();
-//		});
 		setLeft(buttonsBox);
 		setRight(canvas);
 	}
@@ -311,19 +224,10 @@ public class PaintPane extends BorderPane {
 		for(Figure figure : canvasState.figures()) {
 			//{figure.id} = info
 			// info.draw(gc,figure)
-//			if(frontFigureMap.get(figure.getId()).getIsSelected()) {
-//				//la seleccionada tiene borde rojo
-//				frontFigureMap.get(figure.getId()).setLineColor(Color.RED);
-//			} else {
-//				frontFigureMap.get(figure.getId()).setLineColor(lineColor);
-//			}
-//			frontFigureMap.get(figure.getId()).setFillColor(fillColor);
 			frontFigureMap.get(figure.getId()).draw(gc,figure);
-			//crear metodos privados si puedo, getWidth() y esos
-
 		}
 	}
-	public void forEachFigure(Consumer<Figure> consumer){
+	public void forEachSelectedFigure(Consumer<Figure> consumer){
 		for(Figure figure : canvasState.figures()){
 			if(frontFigureMap.get(figure.getId()).isSelected()){
 				consumer.accept(figure);

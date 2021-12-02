@@ -18,7 +18,6 @@ public class CanvasState {
     }
     public void moveToBack(Figure figure){
         if (deque.remove(figure)) {
-            System.out.println("ELIMINE");
             deque.addFirst(figure);
         }
     }
