@@ -112,7 +112,8 @@ public class PaintPane extends BorderPane {
 			Point endPoint = new Point(event.getX(), event.getY());
 			if(startPoint == null) return;
 			for(NewFigureActionButton newFigureActionButton : newFigureActionButtons){
-				newFigureActionButton.createShape(startPoint,endPoint,fillColor,lineColor,lineWidth,this);
+				//crea la figura si el boton esta seleccionado y cumple la condicion canCreate pasada en el constructor del boton
+				newFigureActionButton.createFigure(endPoint,this);
 				if(newFigureActionButton.isSelected()) deselectAll();
 			}
 			if(selectionButton.isSelected() && selectedFigures.isEmpty() ){
@@ -127,6 +128,7 @@ public class PaintPane extends BorderPane {
 					}
 				}
 				if(!selectedFigures.isEmpty()){
+					//si se selecciono alguna figura
 					statusPane.updateStatus(label.toString());
 				}else{
 					statusPane.updateStatus(NOT_FIGURE_SELECTED);
@@ -150,7 +152,8 @@ public class PaintPane extends BorderPane {
 							selectedFigure = figure;
 						}
 					}
-					if (selectedFigure != null) { //si encontro alguna figura
+					if (selectedFigure != null) {
+						//si se selecciono alguna figura
 						label.append(selectedFigure);
 						frontFigureMap.get(selectedFigure.getId()).select();
 						selectedFigures.add(selectedFigure);
@@ -166,6 +169,7 @@ public class PaintPane extends BorderPane {
 			Point eventPoint = new Point(event.getX(), event.getY());
 			boolean found = false;
 			StringBuilder label = new StringBuilder();
+			//agrega la informacion de la figura donde esta el mouse
 			for(Figure figure : canvasState.figures()) {
 				if(figure.pointBelongs(eventPoint)) {
 					found = true;
@@ -182,6 +186,7 @@ public class PaintPane extends BorderPane {
 			if(selectionButton.isSelected()) {
 				double diffX = (event.getX() - startPoint.getX()) / 100;
 				double diffY = (event.getY() - startPoint.getY()) / 100;
+				//mueve todas las figuras seleccionadas
 				forEachSelectedFigure(figure -> {
 					figure.moveX(diffX);
 					figure.moveY(diffY);
@@ -196,7 +201,7 @@ public class PaintPane extends BorderPane {
 		}
 		selectedFigures.clear();
 	}
-	private void removeFigure(Figure figure){
+	private void removeFigure(Figure figure){ //para deleteButton
 		canvasState.delete(figure);
 		frontFigureMap.remove(figure.getId());
 	}
@@ -220,10 +225,23 @@ public class PaintPane extends BorderPane {
 		}
 	}
 	//Métodos que usa newShapeActionButton para agregar las figuras al mapa
-	public void addBackFigure(Figure figure){
+	public void addFigure(Figure figure, FrontFigure frontFigure){
 		canvasState.addFigure(figure);
-	}
-	public void addFrontFigure(Figure figure, FrontFigure frontFigure){
 		frontFigureMap.put(figure.getId(),frontFigure);
+	}
+	public Point getStartPoint() {
+		return startPoint;
+	}
+
+	public Color getLineColor() {
+		return lineColor;
+	}
+
+	public Color getFillColor() {
+		return fillColor;
+	}
+
+	public double getLineWidth() {
+		return lineWidth;
 	}
 }

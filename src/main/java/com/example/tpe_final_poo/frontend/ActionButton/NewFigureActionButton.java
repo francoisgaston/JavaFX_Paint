@@ -4,12 +4,11 @@ import com.example.tpe_final_poo.backend.model.*;
 import com.example.tpe_final_poo.frontend.PaintPane;
 import com.example.tpe_final_poo.frontend.frontEndModel.FrontFigure;
 import javafx.scene.control.ToggleButton;
-import javafx.scene.paint.Color;
 
 import java.util.function.*;
 
 public class NewFigureActionButton extends ToggleButton{
-    private final BackFigureFactory backFigureFactory; //como crea la figura del back
+    private final BackFigureFactory backFigureFactory; //crea la figura del back
     private final FrontFigureFactory frontFigureFactory;//crea la figura del front
     public BiPredicate<Point,Point> canCreate;
 
@@ -19,12 +18,13 @@ public class NewFigureActionButton extends ToggleButton{
         this.frontFigureFactory = frontFigureFactory;
         this.canCreate = canCreate;
     }
-    public void createShape (Point startPoint,Point endPoint, Color fillColor, Color lineColor, double lineWidth, PaintPane paintPane){
-        if(isSelected() && canCreate.test(startPoint,endPoint)){
-            Figure newFigure = backFigureFactory.get(startPoint,endPoint);
-            FrontFigure newFrontFigure = frontFigureFactory.get(fillColor,lineColor,lineWidth);
-            paintPane.addBackFigure(newFigure);
-            paintPane.addFrontFigure(newFigure,newFrontFigure);
+    public void createFigure(Point endPoint, PaintPane paintPane){
+        //si el boton esta seleccionado y los puntos cumplen canCreate
+        if(isSelected() && canCreate.test(paintPane.getStartPoint(),endPoint)){
+            Figure newFigure = backFigureFactory.get(paintPane.getStartPoint(),endPoint);
+            FrontFigure newFrontFigure = frontFigureFactory.get(paintPane.getFillColor(),paintPane.getLineColor(),paintPane.getLineWidth());
+            //agrega las figuras a PaintPane
+            paintPane.addFigure(newFigure,newFrontFigure);
         }
     }
 }
