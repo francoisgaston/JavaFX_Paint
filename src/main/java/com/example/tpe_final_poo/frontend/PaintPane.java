@@ -54,7 +54,7 @@ public class PaintPane extends BorderPane {
 	//Map que almacena como claves a los ID de las figuras y como claves a las FrontFigures
 	private final Map<Integer, FrontFigure> frontFigureMap = new HashMap<>();
 	//Set que almacena las figuras seleccionadas
-	private final Set<Figure> selectedFigures = new HashSet<>();
+	private final Set<Figure> selectedFigures = new TreeSet<>();
 	//PaintPane: manejo de botones, figuras y status pane.
 	public PaintPane(CanvasState canvasState, StatusPane statusPane) {
 		this.canvasState = canvasState;

@@ -1,6 +1,6 @@
 package com.example.tpe_final_poo.backend.model;
 
-public abstract class Figure {//propiedades generales de todas
+public abstract class Figure implements Comparable<Figure>{//propiedades generales de todas
     private final Point topLeft;
     private final Point bottomRight;
     private static final int INITIAL_VALUE = 0;
@@ -51,6 +51,10 @@ public abstract class Figure {//propiedades generales de todas
             return false;
         }
         return id == figure.getId();
+    }
+    @Override
+    public int compareTo(Figure other) {
+        return Integer.compare(id,other.id);
     }
 }
 
