@@ -124,44 +124,91 @@ public class PaintPane extends BorderPane {
 				return ;
 			}
 			for(NewShapeActionButton newShapeActionButton : newShapeActionButtonList){
-					newShapeActionButton.createShape(startPoint,endPoint,fillColor,lineColor,lineWidth,this);
-					deselectAll();
-			}
-			if(selectionButton.isSelected()) {
-				StringBuilder label = new StringBuilder("Se seleccionó: ");
-				if (startPoint.equals(endPoint)) {//Hace clic, medio
-					for (Figure figure : canvasState.figures()) {
-						if (figure.pointBelongs(endPoint)) {
-							selectedFigure = figure;
-						}
-					}
-					deselectAll();
-					if (selectedFigure != null) {
-						//deselectAll();
-						label.append(selectedFigure);
-						selectedFigures.add(selectedFigure);
-						statusPane.updateStatus(label.toString());
-						frontFigureMap.get(selectedFigure.getId()).select();
-					} else {
-						//deselectAll();
-						statusPane.updateStatus(NOT_FIGURE_SELECTED);
-					}
-				}else { //crea un rectangulo
-					if (!inFigure) {
+					if(newShapeActionButton.createShape(startPoint,endPoint,fillColor,lineColor,lineWidth,this)){
 						deselectAll();
-						selectionRectangle = new Rectangle(startPoint, endPoint);
-						for (Figure figure : canvasState.figures()) {
-							if (figure.isInRectangle(selectionRectangle)) {
-								selectedFigures.add(figure);
-								frontFigureMap.get(figure.getId()).select();
-								label.append(figure);
-							}
-						}
-						statusPane.updateStatus(label.toString());
-					}else{
-						statusPane.updateStatus(NOT_FIGURE_SELECTED);
+					}
+			}
+			System.out.println("Holaa " + selectedFigures);
+			if(selectionButton.isSelected() && selectedFigures.isEmpty() ){//tengo que hacer un rectangulo solo si no tengo figuras seleccionadas
+				System.out.println("Entre");
+				selectionRectangle = new Rectangle(startPoint, new Point(event.getX(), event.getY()));
+				StringBuilder label = new StringBuilder("Se seleccionó: ");
+				for (Figure figure : canvasState.figures()) {
+					if (figure.isInRectangle(selectionRectangle)) {
+						System.out.println("Estoy dentro del rectangulo");
+						selectedFigures.add(figure);
+						frontFigureMap.get(figure.getId()).select();
+						label.append(figure);
 					}
 				}
+				if(!selectedFigures.isEmpty()){
+					statusPane.updateStatus(label.toString());
+				}else{
+					selectionRectangle = null;
+					statusPane.updateStatus(NOT_FIGURE_SELECTED);
+				}
+
+			}
+//			if(selectionButton.isSelected()) {
+//				StringBuilder label = new StringBuilder("Se seleccionó: ");
+//				if (startPoint.equals(endPoint)) {//Hace clic, medio
+//					for (Figure figure : canvasState.figures()) {
+//						if (figure.pointBelongs(endPoint)) {
+//							selectedFigure = figure;
+//						}
+//					}
+//					deselectAll();
+//					if (selectedFigure != null) {
+//						//deselectAll();
+//						label.append(selectedFigure);
+//						selectedFigures.add(selectedFigure);
+//						statusPane.updateStatus(label.toString());
+//						frontFigureMap.get(selectedFigure.getId()).select();
+//					} else {
+//						//deselectAll();
+//						statusPane.updateStatus(NOT_FIGURE_SELECTED);
+//					}
+//				}else { //crea un rectangulo
+//					if (!inFigure) {
+//						deselectAll();
+//						selectionRectangle = new Rectangle(startPoint, endPoint);
+//						for (Figure figure : canvasState.figures()) {
+//							if (figure.isInRectangle(selectionRectangle)) {
+//								selectedFigures.add(figure);
+//								frontFigureMap.get(figure.getId()).select();
+//								label.append(figure);
+//							}
+//						}
+//						statusPane.updateStatus(label.toString());
+//					}else{
+//						statusPane.updateStatus(NOT_FIGURE_SELECTED);
+//					}
+//				}
+//			}
+			redrawCanvas();
+		});
+		canvas.setOnMouseClicked(event->{
+			if(selectionRectangle == null && !selectedFigures.isEmpty()){
+				deselectAll();
+			}
+			if(selectionButton.isSelected()){
+				StringBuilder label = new StringBuilder("Se seleccionó: ");
+				Point eventPoint = new Point(event.getX(), event.getY());
+				Figure selectedFigure = null;
+				for(Figure figure : canvasState.figures()){
+					if(figure.pointBelongs(eventPoint)){
+						selectedFigure = figure;
+					}
+				}
+				if(selectedFigure!=null){
+					//deselectAll();
+					label.append(selectedFigure);
+					frontFigureMap.get(selectedFigure.getId()).select();
+					selectedFigures.add(selectedFigure);
+				}else{
+					statusPane.updateStatus(NOT_FIGURE_SELECTED);
+				}
+				System.out.println("click" + selectedFigures);
 			}
 			redrawCanvas();
 		});
@@ -256,12 +303,12 @@ public class PaintPane extends BorderPane {
 			if(selectionButton.isSelected()) {
 				double diffX = (event.getX() - startPoint.getX()) / 100;
 				double diffY = (event.getY() - startPoint.getY()) / 100;
-				if (inFigure) { //Se mueve solo si se inicia el movimiento dentro de la figura
-					forEachSelectedFigure(figure -> {
-						figure.moveX(diffX);
-						figure.moveY(diffY);
-					});
-				}
+//				if (inFigure) { //Se mueve solo si se inicia el movimiento dentro de la figura
+				forEachSelectedFigure(figure -> {
+					figure.moveX(diffX);
+					figure.moveY(diffY);
+				});
+//				}
 				redrawCanvas();
 			}
 		});

@@ -27,12 +27,17 @@ public class NewShapeActionButton {
         return button;
     }
 
-    public void createShape (Point startPoint,Point endPoint, Color fillColor, Color lineColor, double lineWidth, PaintPane paintPane){
+    public boolean createShape (Point startPoint,Point endPoint, Color fillColor, Color lineColor, double lineWidth, PaintPane paintPane){
+        boolean ans = false;
+        if(button.isSelected()){
+            ans = true;
+        }
         if(button.isSelected() && canCreate.test(startPoint,endPoint)){
             Figure newFigure = backFigureFactory.get(startPoint,endPoint);
             FrontFigure newFrontFigure = frontFigureFactory.get(fillColor,lineColor,lineWidth);
             paintPane.addBackFigure(newFigure);
             paintPane.addFrontFigure(newFigure,newFrontFigure);
         }
+        return ans;
     }
 }
