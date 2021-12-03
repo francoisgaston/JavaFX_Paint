@@ -116,9 +116,8 @@ public class PaintPane extends BorderPane {
 			Point endPoint = new Point(event.getX(), event.getY());
 			if(startPoint == null) return;
 			for(NewShapeActionButton newShapeActionButton : newShapeActionButtons){
-					if(newShapeActionButton.createShape(startPoint,endPoint,fillColor,lineColor,lineWidth,this)){
-						deselectAll();
-					}
+				newShapeActionButton.createShape(startPoint,endPoint,fillColor,lineColor,lineWidth,this);
+				if(newShapeActionButton.isSelected()) deselectAll();
 			}
 			if(selectionButton.isSelected() && selectedFigures.isEmpty() ){
 				//tengo que hacer un rectangulo solo si no tengo figuras seleccionadas
