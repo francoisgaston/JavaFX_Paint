@@ -1,7 +1,6 @@
 package com.example.tpe_final_poo.frontend;
 
 import javafx.scene.control.*;
-
 import java.util.Optional;
 
 public class AppMenuBar extends MenuBar {

@@ -1,4 +1,4 @@
-package com.example.tpe_final_poo.frontend;
+package com.example.tpe_final_poo.frontend.ActionButton;
 
 import com.example.tpe_final_poo.frontend.frontEndModel.FrontFigure;
 import javafx.scene.paint.Color;

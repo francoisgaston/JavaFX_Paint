@@ -4,9 +4,8 @@ import com.example.tpe_final_poo.backend.model.Figure;
 import javafx.scene.canvas.GraphicsContext;
 import javafx.scene.paint.Color;
 
-
 public class FrontLine extends FrontFigure{
-
+    private static final int LINE_WIDTH = 1;
     public FrontLine(Color fillColor, Color lineColor, double lineWidth){
         super(fillColor, lineColor, lineWidth);
     }

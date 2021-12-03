@@ -12,4 +12,5 @@ module com.example.tpe_final_poo {
 
     opens com.example.tpe_final_poo to javafx.fxml;
     exports com.example.tpe_final_poo.frontend;
+    exports com.example.tpe_final_poo.frontend.ActionButton;
 }

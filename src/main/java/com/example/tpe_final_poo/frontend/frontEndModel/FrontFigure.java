@@ -32,18 +32,6 @@ public abstract class FrontFigure{
             gc.setStroke(lineColor);
         }
     }
-    public boolean isSelected(){
-        return isSelected;
-    }
-    public double getLineWidth(){
-        return lineWidth;
-    }
-    public Color getFillColor(){
-        return fillColor;
-    }
-    public Color getLineColor(){
-        return lineColor;
-    }
     public void setLineWidth(double lineWidth){
         this.lineWidth = lineWidth;
     }

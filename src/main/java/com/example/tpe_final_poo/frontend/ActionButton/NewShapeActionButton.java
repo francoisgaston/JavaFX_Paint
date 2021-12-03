@@ -1,10 +1,8 @@
-package com.example.tpe_final_poo.frontend;
+package com.example.tpe_final_poo.frontend.ActionButton;
 
 import com.example.tpe_final_poo.backend.model.*;
-import com.example.tpe_final_poo.frontend.frontEndModel.FrontEllipse;
+import com.example.tpe_final_poo.frontend.PaintPane;
 import com.example.tpe_final_poo.frontend.frontEndModel.FrontFigure;
-import com.example.tpe_final_poo.frontend.frontEndModel.FrontLine;
-import com.example.tpe_final_poo.frontend.frontEndModel.FrontRectangle;
 import javafx.scene.control.ToggleButton;
 import javafx.scene.paint.Color;
 

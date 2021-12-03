@@ -2,6 +2,7 @@ package com.example.tpe_final_poo.frontend;
 
 import com.example.tpe_final_poo.backend.CanvasState;
 import com.example.tpe_final_poo.backend.model.*;
+import com.example.tpe_final_poo.frontend.ActionButton.NewShapeActionButton;
 import com.example.tpe_final_poo.frontend.frontEndModel.FrontEllipse;
 import com.example.tpe_final_poo.frontend.frontEndModel.FrontFigure;
 import com.example.tpe_final_poo.frontend.frontEndModel.FrontLine;
@@ -14,11 +15,9 @@ import javafx.scene.control.*;
 import javafx.scene.layout.BorderPane;
 import javafx.scene.layout.VBox;
 import javafx.scene.paint.Color;
-
 import java.util.*;
 import java.util.function.BiPredicate;
 import java.util.function.Consumer;
-import java.util.function.Function;
 
 public class PaintPane extends BorderPane {
 	private CanvasState canvasState;
@@ -47,9 +46,7 @@ public class PaintPane extends BorderPane {
 	private ColorPicker lineColorPicker = new ColorPicker(lineColor);
 	private Slider lineWidthSlider = new Slider(1,maxLineWidth,lineWidth);
 	private Point startPoint;
-	//private Figure selectedFigure;
 	private Figure selectedFigure = null;
-	private List<NewShapeActionButton> newShapeActionButtonList = new ArrayList<>();
 	private StatusPane statusPane;
 	boolean inFigure;
 	private Rectangle selectionRectangle = null;
@@ -60,14 +57,11 @@ public class PaintPane extends BorderPane {
 	private Map<Integer, FrontFigure> frontFigureMap = new HashMap<>();
 	//Set que almacena las figuras seleccionadas
 	private Set<Figure> selectedFigures = new HashSet<>();
-
-	//para actualizar el texto cuando estoy sobre la figura
 	//PaintPane: manejo de botones, figuras y status pane.
 	public PaintPane(CanvasState canvasState, StatusPane statusPane) {
 		this.canvasState = canvasState;
 		this.statusPane = statusPane;
-		NewShapeActionButton[] shapeButton = {rectangleButton,squareButton,circleButton,ellipseButton,lineButton};//TODO mejorar es
-		newShapeActionButtonList.addAll(Arrays.stream(shapeButton).toList());
+		NewShapeActionButton[] newShapeActionButtons = {rectangleButton,squareButton,circleButton,ellipseButton,lineButton};
 		ToggleButton[] toolsArr = {selectionButton, rectangleButton.getButton(), circleButton.getButton(), squareButton.getButton(), ellipseButton.getButton(), lineButton.getButton(), deleteButton ,moveToFront, moveToBack};
 		ToggleGroup tools = new ToggleGroup();
 		for (ToggleButton tool : toolsArr) {
@@ -120,22 +114,18 @@ public class PaintPane extends BorderPane {
 
 		canvas.setOnMouseReleased(event -> {
 			Point endPoint = new Point(event.getX(), event.getY());
-			if(startPoint == null) {
-				return ;
-			}
-			for(NewShapeActionButton newShapeActionButton : newShapeActionButtonList){
+			if(startPoint == null) return;
+			for(NewShapeActionButton newShapeActionButton : newShapeActionButtons){
 					if(newShapeActionButton.createShape(startPoint,endPoint,fillColor,lineColor,lineWidth,this)){
 						deselectAll();
 					}
 			}
-			System.out.println("Holaa " + selectedFigures);
-			if(selectionButton.isSelected() && selectedFigures.isEmpty() ){//tengo que hacer un rectangulo solo si no tengo figuras seleccionadas
-				System.out.println("Entre");
+			if(selectionButton.isSelected() && selectedFigures.isEmpty() ){
+				//tengo que hacer un rectangulo solo si no tengo figuras seleccionadas
 				selectionRectangle = new Rectangle(startPoint, new Point(event.getX(), event.getY()));
 				StringBuilder label = new StringBuilder("Se seleccionó: ");
 				for (Figure figure : canvasState.figures()) {
 					if (figure.isInRectangle(selectionRectangle)) {
-						System.out.println("Estoy dentro del rectangulo");
 						selectedFigures.add(figure);
 						frontFigureMap.get(figure.getId()).select();
 						label.append(figure);
@@ -144,73 +134,36 @@ public class PaintPane extends BorderPane {
 				if(!selectedFigures.isEmpty()){
 					statusPane.updateStatus(label.toString());
 				}else{
-					selectionRectangle = null;
 					statusPane.updateStatus(NOT_FIGURE_SELECTED);
 				}
-
 			}
-//			if(selectionButton.isSelected()) {
-//				StringBuilder label = new StringBuilder("Se seleccionó: ");
-//				if (startPoint.equals(endPoint)) {//Hace clic, medio
-//					for (Figure figure : canvasState.figures()) {
-//						if (figure.pointBelongs(endPoint)) {
-//							selectedFigure = figure;
-//						}
-//					}
-//					deselectAll();
-//					if (selectedFigure != null) {
-//						//deselectAll();
-//						label.append(selectedFigure);
-//						selectedFigures.add(selectedFigure);
-//						statusPane.updateStatus(label.toString());
-//						frontFigureMap.get(selectedFigure.getId()).select();
-//					} else {
-//						//deselectAll();
-//						statusPane.updateStatus(NOT_FIGURE_SELECTED);
-//					}
-//				}else { //crea un rectangulo
-//					if (!inFigure) {
-//						deselectAll();
-//						selectionRectangle = new Rectangle(startPoint, endPoint);
-//						for (Figure figure : canvasState.figures()) {
-//							if (figure.isInRectangle(selectionRectangle)) {
-//								selectedFigures.add(figure);
-//								frontFigureMap.get(figure.getId()).select();
-//								label.append(figure);
-//							}
-//						}
-//						statusPane.updateStatus(label.toString());
-//					}else{
-//						statusPane.updateStatus(NOT_FIGURE_SELECTED);
-//					}
-//				}
-//			}
 			redrawCanvas();
 		});
 		canvas.setOnMouseClicked(event->{
-			if(selectionRectangle == null && !selectedFigures.isEmpty()){
+			if(startPoint.equals(new Point(event.getX(),event.getY()))) { //si es un clic verdadero, y no es que sale de pressed
+			// if(startPoint.closeTo(new Point(event.getX(),event.getY()))){
 				deselectAll();
-			}
-			if(selectionButton.isSelected()){
-				StringBuilder label = new StringBuilder("Se seleccionó: ");
-				Point eventPoint = new Point(event.getX(), event.getY());
-				Figure selectedFigure = null;
-				for(Figure figure : canvasState.figures()){
-					if(figure.pointBelongs(eventPoint)){
-						selectedFigure = figure;
+				if (selectionButton.isSelected()) {
+					StringBuilder label = new StringBuilder("Se seleccionó: ");
+					Point eventPoint = new Point(event.getX(), event.getY());
+					Figure selectedFigure = null;
+					for (Figure figure : canvasState.figures()) {
+						if (figure.pointBelongs(eventPoint)) {
+							selectedFigure = figure;
+						}
+					}
+					if (selectedFigure != null) {
+						//deselectAll();
+						label.append(selectedFigure);
+						frontFigureMap.get(selectedFigure.getId()).select();
+						selectedFigures.add(selectedFigure);
+						statusPane.updateStatus(label.toString());
+					} else {
+						statusPane.updateStatus(NOT_FIGURE_SELECTED);
 					}
 				}
-				if(selectedFigure!=null){
-					//deselectAll();
-					label.append(selectedFigure);
-					frontFigureMap.get(selectedFigure.getId()).select();
-					selectedFigures.add(selectedFigure);
-				}else{
-					statusPane.updateStatus(NOT_FIGURE_SELECTED);
-				}
-				System.out.println("click" + selectedFigures);
+				redrawCanvas();
 			}
-			redrawCanvas();
 		});
 		canvas.setOnMouseMoved(event -> {
 			Point eventPoint = new Point(event.getX(), event.getY());
@@ -229,86 +182,14 @@ public class PaintPane extends BorderPane {
 				statusPane.updateStatus(eventPoint.toString());
 			}
 		});
-		// Mouse Clickeado
-//		canvas.setOnMouseClicked(event->{
-//			//Any figure selected
-//			boolean onFigure = false;
-//			Point eventPoint = new Point(event.getX(), event.getY());
-//			for(Figure figure : canvasState.figures()){
-//				if(figure.pointBelongs(eventPoint)){
-//					onFigure = true;
-//				}
-//			}
-//			if(!onFigure){
-//				deselectAll();
-//			}
-//		});
-		//canvas.setOnMouseClicked(event -> { //cambiar cuando hagamos lo de seleccion multiple
-/*
-			Point eventPoint = new Point(event.getX(), event.getY());
-			if(selectionButton.isSelected()){
-				if(startPoint!= null && startPoint.equals(eventPoint)){//selecciona solo una
-					StringBuilder label = new StringBuilder("Se seleccionó: ");
-					Figure selectedFigure = null;
-					for(Figure figure : canvasState.figures()){
-						if(figure.pointBelongs(eventPoint)){
-							selectedFigure = figure;
-							label.append(figure);
-						}
-					}
-					if(selectedFigure!=null){
-						statusPane.updateStatus(label.toString());
-						frontFigureMap.get(selectedFigure.getId()).select();
-					}else{
-						statusPane.updateStatus("Ninguna figura seleccionada");
-					}
-				}
-				redrawCanvas();
-				*/
-	//		}
-//			if(selectionButton.isSelected()) {
-////				if(selectionRectangle==null){
-////					deselectAll();
-////				}
-//				Point eventPoint = new Point(event.getX(), event.getY());
-//				boolean found = false;
-//				StringBuilder label = new StringBuilder("Se seleccionó: ");
-//				//Hacer un metodo que vaya por todas las figuras y devuelva el Label
-//				//deselectAll();
-//				//TODO: tiene sentido que esto este aca, arreglarlo despues
-//				for (Figure figure : canvasState.figures()){
-//					if(figure.pointBelongs(eventPoint)) {
-//						found = true;
-//						selectedFigure = figure;
-//						label.append(figure);
-//					}
-//				}
-//				if (found) {
-//					statusPane.updateStatus(label.toString());
-//					frontFigureMap.get(selectedFigure.getId()).select();
-//				} else {
-//					selectedFigure = null;
-//					statusPane.updateStatus("Ninguna figura encontrada");
-//				}
-////				if(startPoint==null){
-////					deselectAll();
-////				}
-//				redrawCanvas();
-//			}else{
-//				deselectAll();
-//			}
-			//redrawCanvas();
-		//});
 		canvas.setOnMouseDragged(event -> {
 			if(selectionButton.isSelected()) {
 				double diffX = (event.getX() - startPoint.getX()) / 100;
 				double diffY = (event.getY() - startPoint.getY()) / 100;
-//				if (inFigure) { //Se mueve solo si se inicia el movimiento dentro de la figura
 				forEachSelectedFigure(figure -> {
 					figure.moveX(diffX);
 					figure.moveY(diffY);
 				});
-//				}
 				redrawCanvas();
 			}
 		});
@@ -329,8 +210,6 @@ public class PaintPane extends BorderPane {
 		gc.clearRect(0, 0, canvas.getWidth(), canvas.getHeight());
 		//borra las figuras
 		for(Figure figure : canvasState.figures()) {
-			//{figure.id} = info
-			// info.draw(gc,figure)
 			frontFigureMap.get(figure.getId()).draw(gc,figure);
 		}
 	}
@@ -355,8 +234,6 @@ public class PaintPane extends BorderPane {
 		}
 		return false;
 	}
-	//TODO: preguntar si el rectángulo imaginario debe poder dibujarse en todas las direcciones o solo de izquierda a derecha y arriba a abajo
-
 	//Métodos que usa newShapeActionButton para agregar las figuras al mapa
 	public void addBackFigure(Figure figure){
 		canvasState.addFigure(figure);

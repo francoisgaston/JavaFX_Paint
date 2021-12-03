@@ -1,7 +1,6 @@
 package com.example.tpe_final_poo.backend.model;
 
 public abstract class Figure {//propiedades generales de todas
-    //id de la figura
     private Point topLeft;
     private Point bottomRight;
     private static final int INITIAL_VALUE = 0;
@@ -54,5 +53,5 @@ public abstract class Figure {//propiedades generales de todas
         return id == figure.getId();
     }
 }
-//Ej 3 TP4
+
 

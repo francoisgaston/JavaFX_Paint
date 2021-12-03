@@ -13,9 +13,6 @@ public class CanvasState {
     public void addFigure(Figure figure) {
         deque.add(figure);
     }
-    public String showAll(){
-        return deque.toString();
-    }
     public void moveToBack(Figure figure){
         if (deque.remove(figure)) {
             deque.addFirst(figure);
@@ -29,7 +26,6 @@ public class CanvasState {
             deque.addLast(figure);
         }
     }
-
     public Iterable<Figure> figures() {
         return new ArrayList<>(deque);
     }
