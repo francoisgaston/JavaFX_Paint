@@ -1,7 +1,7 @@
 package com.example.tpe_final_poo.backend.model;
 
 public class Ellipse extends Figure{
-    private Point centerPoint;
+    private final Point centerPoint;
     public Ellipse(Point topLeft, Point bottomRight){
         super(topLeft, bottomRight);
         this.centerPoint = new Point(topLeft.getX() + getxRadius(), bottomRight.getY() - getyRadius());

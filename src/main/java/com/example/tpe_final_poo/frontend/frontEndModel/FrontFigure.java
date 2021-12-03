@@ -5,7 +5,7 @@ import javafx.scene.canvas.GraphicsContext;
 import javafx.scene.paint.Color;
 
 public abstract class FrontFigure{
-    private static final Color selectedBorderColor = Color.RED;
+    private static final Color SELECTED_BORDER_COLOR = Color.RED;
     private Color fillColor;
     private Color lineColor;
     private double lineWidth;
@@ -27,7 +27,7 @@ public abstract class FrontFigure{
         gc.setLineWidth(lineWidth);
         gc.setFill(fillColor);
         if(isSelected){
-            gc.setStroke(selectedBorderColor);
+            gc.setStroke(SELECTED_BORDER_COLOR);
         }else{
             gc.setStroke(lineColor);
         }

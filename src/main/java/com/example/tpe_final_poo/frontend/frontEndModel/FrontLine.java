@@ -12,7 +12,7 @@ public class FrontLine extends FrontFigure{
     @Override
     public void draw(GraphicsContext gc, Figure figure){
         super.draw(gc,figure);
-        gc.setLineWidth(1);
+        gc.setLineWidth(LINE_WIDTH);
         gc.strokeLine(figure.getTopLeft().getX(), figure.getTopLeft().getY(), figure.getBottomRight().getX(), figure.getBottomRight().getY());
     }
 }

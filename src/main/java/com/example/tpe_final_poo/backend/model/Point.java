@@ -37,7 +37,7 @@ public class Point {
         }
         return x == point.getX() && y == point.getY();
     }
-    public boolean closeTo(Point endPoint){
-        return Math.abs(x-endPoint.getX())<=40 && Math.abs(y-endPoint.getY())<=40;
-    }
+//    public boolean closeTo(Point endPoint){
+//        return Math.abs(x-endPoint.getX())<=40 && Math.abs(y-endPoint.getY())<=40;
+//    }
 }

@@ -1,11 +1,11 @@
 package com.example.tpe_final_poo.backend.model;
 
 public abstract class Figure {//propiedades generales de todas
-    private Point topLeft;
-    private Point bottomRight;
+    private final Point topLeft;
+    private final Point bottomRight;
     private static final int INITIAL_VALUE = 0;
     private static int currentId = INITIAL_VALUE;
-    private int id;
+    private final int id;
 
     public Figure(Point topLeft, Point bottomRight){
         this.topLeft = topLeft;
