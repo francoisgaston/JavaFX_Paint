@@ -40,4 +40,7 @@ public class Point {
 //    public boolean closeTo(Point endPoint){
 //        return Math.abs(x-endPoint.getX())<=40 && Math.abs(y-endPoint.getY())<=40;
 //    }
+    public double distanceTo(Point other){
+        return Math.sqrt(Math.pow(x-other.x,2) + Math.pow(y-other.y,2));
+    }
 }
